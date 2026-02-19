@@ -1,7 +1,14 @@
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"
-    environment:
-      DATABASE_URL: "mysql+pymysql://mentora_user:StrongPass123!@host.docker.internal:3306/mentora_db"
+frontend:
+  build:
+    context: ./frontend
+    dockerfile: Dockerfile
+  container_name: mentora-frontend
+  depends_on:
+    - backend
+  ports:
+    - "3000:3000"
+  environment:
+    NEXT_PUBLIC_API_BASE: "http://localhost:8000"
+  volumes:
+    - ./frontend:/app
+    - /app/node_modules
