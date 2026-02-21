@@ -2,8 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Optional: consistent full-height layout */
-html,
-body {
-  height: 100%;
+/* smooth scroll (optional but nice) */
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
 }
