@@ -1,4 +1,3 @@
-
 # 🌍 Multilingual Emotion Analysis Platform
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
