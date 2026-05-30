@@ -2,78 +2,60 @@ import React from 'react';
 
 const features = [
     {
-        icon: "🤖",
-        title: "এআই-চালিত বিশ্লেষণ",
-        description: "আর্টিফিশিয়াল ইন্টেলিজেন্স ব্যবহার করে আপনার মানসিক অবস্থার সঠিক বিশ্লেষণ",
-        color: "from-blue-500 to-cyan-500"
+        icon: '🤖',
+        title: 'AI-নির্দেশিত প্রতিফলন',
+        description: 'স্মার্ট প্রম্পট আর সহজ বিশ্লেষণ আপনাকে নিজের আবেগের ধরন দ্রুত বুঝতে সাহায্য করে।'
     },
     {
-        icon: "🔒",
-        title: "১০০% গোপনীয়",
-        description: "আপনার তথ্য সম্পূর্ণ নিরাপদ। কেউ দেখতে পাবে না, শেয়ার করা হবে না",
-        color: "from-purple-500 to-pink-500"
+        icon: '🔒',
+        title: 'ডিফল্টভাবেই গোপনীয়তা',
+        description: 'এনক্রিপ্টেড নোট, নিরাপদ স্টোরেজ, আর বিশ্বাসভিত্তিক অভিজ্ঞতা প্রতিটি সেশনে।'
     },
     {
-        icon: "💬",
-        title: "২৪/৭ সাপোর্ট",
-        description: "যেকোনো সময়, যেকোনো জায়গা থেকে আমাদের সেবা নিতে পারবেন",
-        color: "from-green-500 to-emerald-500"
+        icon: '💬',
+        title: 'সদা-সচল সহায়তা',
+        description: 'আপনি যখন সবচেয়ে বেশি ভরসা চান, তখনও কথা বলার মতো একটি সহায়তা স্তর সবসময় প্রস্তুত।'
     },
     {
-        icon: "📊",
-        title: "প্রতিদিনের ট্র্যাকিং",
-        description: "নিয়মিত আপনার মানসিক স্বাস্থ্যের উন্নতি পর্যবেক্ষণ করুন",
-        color: "from-orange-500 to-red-500"
+        icon: '📊',
+        title: 'দৈনিক অভ্যাস ট্র্যাকিং',
+        description: 'মুড, ঘুম, আর mindfulness এক জায়গায় দেখে আপনি নিজের রুটিন সহজে বুঝতে পারেন।'
     },
     {
-        icon: "👥",
-        title: "কমিউনিটি সাপোর্ট",
-        description: "একই অভিজ্ঞতা সম্পন্ন মানুষদের সাথে সংযোগ স্থাপন করুন",
-        color: "from-indigo-500 to-purple-500"
+        icon: '👥',
+        title: 'পরিবার ও কমিউনিটি সাপোর্ট',
+        description: 'সহযোগিতামূলক সার্কেল তৈরি করুন, যা হইচই না করে বরং নিরাপদ আর সহানুভূতিশীল থাকে।'
     },
     {
-        icon: "📱",
-        title: "মোবাইল ফ্রেন্ডলি",
-        description: "যেকোনো ডিভাইস থেকে সহজেই ব্যবহার করতে পারবেন",
-        color: "from-pink-500 to-rose-500"
+        icon: '📱',
+        title: 'মোবাইল-প্রথম অভিজ্ঞতা',
+        description: 'ফোন, ট্যাব, আর ডেস্কটপে একইভাবে দ্রুত, পরিষ্কার, আর স্বাচ্ছন্দ্যময় ইন্টারফেস।'
     }
 ];
 
 const FeaturesSection = () => {
     return (
-        <div className="py-20 px-4 bg-white">
-            <div className="max-w-6xl mx-auto">
-                {/* সেকশন হেডার */}
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-                        🌟 কেন বেছে নেবেন <span className="text-purple-600">মেন্টাল সাথী</span>?
-                    </h2>
-                    <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                        আমরা তৈরি করেছি সহজ, নিরাপদ ও কার্যকর কিছু ফিচার যা আপনার মানসিক স্বাস্থ্যের যত্ন নেবে
+        <section className="content-section" id="features">
+            <div className="container">
+                <div className="section-heading reveal">
+                    <span className="section-kicker">কেন মেন্টোরা</span>
+                    <h2>এক জায়গায় মানসিক যত্ন, AI insight, আর পরিষ্কার SaaS অভিজ্ঞতা</h2>
+                    <p>
+                        আমরা প্ল্যাটফর্মটি এমনভাবে বানিয়েছি যাতে পরিষ্কার বোঝা যায়, ভরসা তৈরি হয়, আর ব্যবহার করতে আলাদা কোনো ঝামেলা না থাকে।
                     </p>
                 </div>
 
-                {/* ফিচার গ্রিড */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="feature-grid">
                     {features.map((feature, index) => (
-                        <div 
-                            key={index}
-                            className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100"
-                        >
-                            <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-full flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                                {feature.icon}
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-800 mb-3">
-                                {feature.title}
-                            </h3>
-                            <p className="text-gray-600 leading-relaxed">
-                                {feature.description}
-                            </p>
-                        </div>
+                        <article key={index} className="feature-card reveal">
+                            <div className="feature-icon">{feature.icon}</div>
+                            <h3>{feature.title}</h3>
+                            <p>{feature.description}</p>
+                        </article>
                     ))}
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 
