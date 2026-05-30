@@ -3,27 +3,27 @@ import React, { useState, useEffect } from 'react';
 const stats = [
     {
         number: 50000,
-        label: "সক্রিয় ইউজার",
-        icon: "👥",
-        suffix: "+"
+        label: 'ট্র্যাক করা সেশন',
+        icon: '👥',
+        suffix: '+'
     },
     {
         number: 98,
-        label: "সন্তুষ্টির হার",
-        icon: "⭐",
-        suffix: "%"
+        label: 'সন্তুষ্টির হার',
+        icon: '⭐',
+        suffix: '%'
     },
     {
         number: 150,
-        label: "বিশেষজ্ঞ সাইকোলজিস্ট",
-        icon: "🎓",
-        suffix: "+"
+        label: 'কেয়ার বিশেষজ্ঞ',
+        icon: '🎓',
+        suffix: '+'
     },
     {
         number: 24,
-        label: "ঘন্টা সাপোর্ট",
-        icon: "🕐",
-        suffix: "/৭"
+        label: 'ঘণ্টা সহায়তা',
+        icon: '🕐',
+        suffix: '/7'
     }
 ];
 
@@ -52,45 +52,32 @@ const Counter = ({ end, duration = 2000 }) => {
 
 const StatsSection = () => {
     return (
-        <div className="py-20 px-4 bg-gradient-to-r from-purple-600 to-pink-600">
-            <div className="max-w-6xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <section className="stats-section">
+            <div className="container">
+                <div className="stats-grid reveal">
                     {stats.map((stat, index) => (
-                        <div 
-                            key={index}
-                            className="text-center text-white transform hover:scale-105 transition-transform duration-300"
-                        >
-                            <div className="text-5xl mb-3">
-                                {stat.icon}
-                            </div>
-                            <div className="text-4xl md:text-5xl font-bold mb-2">
+                        <article key={index} className="stat-card">
+                            <div className="stat-icon">{stat.icon}</div>
+                            <div className="stat-value">
                                 <Counter end={stat.number} />
                                 {stat.suffix}
                             </div>
-                            <div className="text-lg opacity-95">
-                                {stat.label}
-                            </div>
-                        </div>
+                            <div className="stat-label">{stat.label}</div>
+                        </article>
                     ))}
                 </div>
 
-                {/* ইউজার রিভিউ ব্যাজ */}
-                <div className="mt-12 text-center">
-                    <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-lg rounded-full px-6 py-3">
-                        <div className="flex -space-x-2">
-                            {['👨', '👩', '👧', '👦'].map((emoji, i) => (
-                                <div key={i} className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm border-2 border-purple-600">
-                                    {emoji}
-                                </div>
-                            ))}
-                        </div>
-                        <span className="text-white font-semibold">
-                            ৫০০০+ মানুষ আমাদের উপর আস্থা রেখেছেন
-                        </span>
+                <div className="social-proof reveal">
+                    <div className="avatar-stack">
+                        <span>🙂</span>
+                        <span>🙂</span>
+                        <span>🙂</span>
+                        <span>🙂</span>
                     </div>
+                    <p>বাংলাদেশের ৫,০০০+ মানুষ মেন্টোরার সাথে আরও স্বাস্থ্যকর check-in অভ্যাস গড়ে তুলেছেন।</p>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 
