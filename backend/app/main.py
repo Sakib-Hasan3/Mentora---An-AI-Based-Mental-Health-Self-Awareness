@@ -1,5 +1,7 @@
 import os
-from fastapi import FastAPI, Depends
+from typing import Optional
+from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -30,3 +32,21 @@ def db_check(db: Session = Depends(get_db)):
         return {"detail": "Not available in production"}
     val = db.execute(text("SELECT 1")).scalar()
     return {"db": "ok", "select_1": val}
+
+
+class SignupIn(BaseModel):
+    name: str
+    email: str
+    phone: Optional[str] = None
+    password: str
+
+
+@app.post('/api/signup', status_code=201)
+def signup(payload: SignupIn):
+    # NOTE: This is a simple mock endpoint for local development.
+    # In production you should hash passwords, validate uniqueness,
+    # and persist the user to the database.
+    if not payload.email or not payload.password:
+        raise HTTPException(status_code=400, detail='ইমেইল এবং পাসওয়ার্ড প্রয়োজন')
+
+    return {"message": "user created", "email": payload.email}
