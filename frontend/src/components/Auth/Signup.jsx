@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import './signup.css';
 
 const signupBenefits = [
     'বাংলা ভাষায় সহজ onboarding',
@@ -26,6 +28,7 @@ const Signup = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const [serverError, setServerError] = useState('');
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -84,20 +87,39 @@ const Signup = () => {
         }
 
         setIsLoading(true);
+        setServerError('');
 
-        setTimeout(() => {
-            setSuccessMessage('আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে। এখন আপনি Mentora ব্যবহার শুরু করতে পারেন।');
-            setFormData({
-                name: '',
-                email: '',
-                phone: '',
-                password: '',
-                confirmPassword: ''
+        // Configurable endpoint: change if your backend exposes a different path
+        const endpoint = process.env.REACT_APP_SIGNUP_ENDPOINT || '/api/signup';
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: formData.name.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone.trim(),
+                password: formData.password
+            })
+        })
+            .then(async (res) => {
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = data?.detail || data?.message || 'সার্ভারে কিছু ত্রুটি হয়েছে';
+                    throw new Error(msg);
+                }
+                return data;
+            })
+            .then(() => {
+                setSuccessMessage('আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে। এখন আপনি Mentora ব্যবহার শুরু করতে পারেন।');
+                setFormData({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+                setIsLoading(false);
+                setTimeout(() => setSuccessMessage(''), 3500);
+            })
+            .catch((err) => {
+                setServerError(String(err.message || err));
+                setIsLoading(false);
             });
-            setIsLoading(false);
-
-            setTimeout(() => setSuccessMessage(''), 3500);
-        }, 1200);
     };
 
     return (
@@ -117,12 +139,12 @@ const Signup = () => {
                         </div>
 
                         <div className="signup-top-actions">
-                            <a className="btn btn-secondary signup-link-btn" href="/">
+                            <Link className="btn btn-secondary signup-link-btn" to="/">
                                 হোমে ফিরুন
-                            </a>
-                            <a className="btn btn-primary signup-link-btn" href="#signup-form">
+                            </Link>
+                            <Link className="btn btn-primary signup-link-btn" to="/login">
                                 লগইন
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -168,7 +190,11 @@ const Signup = () => {
                         <p>মাত্র কয়েক মিনিটে শুরু করুন। সবকিছুই সহজ, পরিষ্কার, আর বাংলায় রাখা হয়েছে।</p>
                     </div>
 
-                    {successMessage && <div className="signup-success">{successMessage}</div>}
+                    {successMessage && (
+                        <div className="signup-success" role="status" aria-live="polite">
+                            {successMessage}
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="signup-form">
                         <div className="field-grid">
@@ -180,8 +206,10 @@ const Signup = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     placeholder="যেমন: রাবিয়া খান"
+                                    aria-invalid={errors.name ? 'true' : 'false'}
+                                    aria-describedby={errors.name ? 'name-error' : undefined}
                                 />
-                                {errors.name && <small className="field-error">{errors.name}</small>}
+                                {errors.name && <small id="name-error" className="field-error">{errors.name}</small>}
                             </label>
 
                             <label className="field">
@@ -192,8 +220,10 @@ const Signup = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     placeholder="name@example.com"
+                                    aria-invalid={errors.email ? 'true' : 'false'}
+                                    aria-describedby={errors.email ? 'email-error' : undefined}
                                 />
-                                {errors.email && <small className="field-error">{errors.email}</small>}
+                                {errors.email && <small id="email-error" className="field-error">{errors.email}</small>}
                             </label>
                         </div>
 
@@ -205,8 +235,10 @@ const Signup = () => {
                                 value={formData.phone}
                                 onChange={handleChange}
                                 placeholder="01XXXXXXXXX"
+                                aria-invalid={errors.phone ? 'true' : 'false'}
+                                aria-describedby={errors.phone ? 'phone-error' : undefined}
                             />
-                            {errors.phone && <small className="field-error">{errors.phone}</small>}
+                            {errors.phone && <small id="phone-error" className="field-error">{errors.phone}</small>}
                         </label>
 
                         <div className="field-grid">
@@ -219,6 +251,8 @@ const Signup = () => {
                                         value={formData.password}
                                         onChange={handleChange}
                                         placeholder="কমপক্ষে ৬ অক্ষর"
+                                        aria-invalid={errors.password ? 'true' : 'false'}
+                                        aria-describedby={errors.password ? 'password-error' : undefined}
                                     />
                                     <button
                                         type="button"
@@ -229,7 +263,7 @@ const Signup = () => {
                                         {showPassword ? '🙈' : '👁️'}
                                     </button>
                                 </div>
-                                {errors.password && <small className="field-error">{errors.password}</small>}
+                                {errors.password && <small id="password-error" className="field-error">{errors.password}</small>}
                             </label>
 
                             <label className="field">
@@ -240,8 +274,10 @@ const Signup = () => {
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
                                     placeholder="আবার একই পাসওয়ার্ড"
+                                    aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+                                    aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
                                 />
-                                {errors.confirmPassword && <small className="field-error">{errors.confirmPassword}</small>}
+                                {errors.confirmPassword && <small id="confirmPassword-error" className="field-error">{errors.confirmPassword}</small>}
                             </label>
                         </div>
 
@@ -257,7 +293,7 @@ const Signup = () => {
                         </button>
 
                         <p className="signup-note">
-                            ইতিমধ্যে অ্যাকাউন্ট আছে? <a href="#">লগইন করুন</a>
+                            ইতিমধ্যে অ্যাকাউন্ট আছে? <Link to="/login">লগইন করুন</Link>
                         </p>
                     </form>
 
