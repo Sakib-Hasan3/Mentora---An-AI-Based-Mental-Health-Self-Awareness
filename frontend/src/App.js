@@ -1,12 +1,21 @@
 import React from 'react';
-import SignupPage from './pages/SignupPage';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './styles/globals.css';
+
+import HomePage from './pages/HomePage';
+import SignupPage from './pages/SignupPage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
     return (
-        <div className="App">
-            <SignupPage />
-        </div>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="*" element={<HomePage />} />
+            </Routes>
+        </BrowserRouter>
     );
 }
 
