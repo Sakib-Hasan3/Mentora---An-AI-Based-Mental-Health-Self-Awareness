@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
 
+const signupBenefits = [
+    'বাংলা ভাষায় সহজ onboarding',
+    'গোপনীয়তা-প্রথম অভিজ্ঞতা',
+    'মোবাইল-ফার্স্ট, দ্রুত লোড হয়',
+    'AI-guided mood support'
+];
+
+const supportPoints = [
+    'আপনার অনুভূতি লিখে রাখুন',
+    'দৈনিক AI সারাংশ পান',
+    'ভালো অভ্যাস ধাপে ধাপে গড়ে তুলুন'
+];
+
 const Signup = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -8,80 +21,72 @@ const Signup = () => {
         password: '',
         confirmPassword: ''
     });
-    
+
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
 
-    // ইনপুট চেঞ্জ হ্যান্ডলার
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+        setFormData((previous) => ({
+            ...previous,
             [name]: value
         }));
-        
-        // ফিল্ড এডিট করলে এরর ক্লিয়ার করুন
+
         if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
+            setErrors((previous) => ({ ...previous, [name]: '' }));
         }
     };
 
-    // ফর্ম ভ্যালিডেশন
     const validateForm = () => {
-        const newErrors = {};
-        
-        // নাম ভ্যালিডেশন
+        const nextErrors = {};
+
         if (!formData.name.trim()) {
-            newErrors.name = 'আপনার নাম দিন';
-        } else if (formData.name.length < 2) {
-            newErrors.name = 'নাম কমপক্ষে ২ অক্ষরের হতে হবে';
+            nextErrors.name = 'আপনার নাম লিখুন';
+        } else if (formData.name.trim().length < 2) {
+            nextErrors.name = 'নাম অন্তত ২ অক্ষরের হতে হবে';
         }
-        
-        // ইমেইল ভ্যালিডেশন
+
         if (!formData.email.trim()) {
-            newErrors.email = 'ইমেইল ঠিকানা দিন';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'সঠিক ইমেইল ঠিকানা দিন (যেমন: name@example.com)';
+            nextErrors.email = 'ইমেইল ঠিকানা লিখুন';
+        } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+            nextErrors.email = 'সঠিক ইমেইল ঠিকানা দিন';
         }
-        
-        // মোবাইল ভ্যালিডেশন (অপশনাল)
+
         if (formData.phone && !/^01[3-9]\d{8}$/.test(formData.phone)) {
-            newErrors.phone = 'সঠিক মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)';
+            nextErrors.phone = 'সঠিক বাংলাদেশি মোবাইল নম্বর দিন';
         }
-        
-        // পাসওয়ার্ড ভ্যালিডেশন
+
         if (!formData.password) {
-            newErrors.password = 'পাসওয়ার্ড দিন';
+            nextErrors.password = 'পাসওয়ার্ড লিখুন';
         } else if (formData.password.length < 6) {
-            newErrors.password = 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
+            nextErrors.password = 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
         }
-        
-        // কনফার্ম পাসওয়ার্ড ভ্যালিডেশন
-        if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'পাসওয়ার্ড দুটি মিলছে না';
+
+        if (!formData.confirmPassword) {
+            nextErrors.confirmPassword = 'পাসওয়ার্ড আবার লিখুন';
+        } else if (formData.password !== formData.confirmPassword) {
+            nextErrors.confirmPassword = 'পাসওয়ার্ড দুটি মেলেনি';
         }
-        
-        return newErrors;
+
+        return nextErrors;
     };
 
-    // ফর্ম সাবমিট হ্যান্ডলার
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
+    const handleSubmit = (event) => {
+        event.preventDefault();
+
         const validationErrors = validateForm();
+
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             return;
         }
-        
+
         setIsLoading(true);
-        
-        // এখানে ব্যাকএন্ডে ডাটা পাঠানোর কোড আসবে
-        // বর্তমানে শুধু UI দেখানোর জন্য সিমুলেট করছি
+
         setTimeout(() => {
-            setSuccessMessage('🎉 একাউন্ট সফলভাবে তৈরি হয়েছে!');
+            setSuccessMessage('আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে। এখন আপনি Mentora ব্যবহার শুরু করতে পারেন।');
             setFormData({
                 name: '',
                 email: '',
@@ -90,223 +95,183 @@ const Signup = () => {
                 confirmPassword: ''
             });
             setIsLoading(false);
-            
-            // ৩ সেকেন্ড后 মেসেজ ক্লিয়ার
-            setTimeout(() => setSuccessMessage(''), 3000);
-        }, 1500);
+
+            setTimeout(() => setSuccessMessage(''), 3500);
+        }, 1200);
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 md:p-10 animate-fadeInUp">
-                
-                {/* হেডার */}
-                <div className="text-center mb-8">
-                    <div className="flex justify-center mb-4">
-                        <span className="text-7xl animate-bounce">🧠</span>
-                    </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                        একাউন্ট তৈরি করুন
-                    </h2>
-                    <p className="text-gray-500">
-                        বিনামূল্যে সাইনআপ করুন এবং শুরু করুন
-                    </p>
-                </div>
+        <main className="signup-page">
+            <div className="signup-glow signup-glow-left" />
+            <div className="signup-glow signup-glow-right" />
 
-                {/* সাকসেস মেসেজ */}
-                {successMessage && (
-                    <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-center">
-                        {successMessage}
-                    </div>
-                )}
-
-                {/* ফর্ম */}
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    
-                    {/* নাম ফিল্ড */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            আপনার নাম <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                                errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                            }`}
-                            placeholder="জন Doe"
-                        />
-                        {errors.name && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                                <span>⚠️</span> {errors.name}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* ইমেইল ফিল্ড */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            ইমেইল ঠিকানা <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                                errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                            }`}
-                            placeholder="you@example.com"
-                        />
-                        {errors.email && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                                <span>⚠️</span> {errors.email}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* মোবাইল ফিল্ড */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            মোবাইল নম্বর <span className="text-gray-400 text-xs">(অপশনাল)</span>
-                        </label>
-                        <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                                errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                            }`}
-                            placeholder="০১XXXXXXXXX"
-                        />
-                        {errors.phone && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                                <span>⚠️</span> {errors.phone}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* পাসওয়ার্ড ফিল্ড */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            পাসওয়ার্ড <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                                    errors.password ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                                }`}
-                                placeholder="••••••••"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-purple-600"
-                            >
-                                {showPassword ? '🙈' : '👁️'}
-                            </button>
+            <div className="container signup-layout">
+                <section className="signup-showcase reveal">
+                    <div className="signup-brand-card">
+                        <div className="signup-brand">
+                            <span className="hero-brand-mark">M</span>
+                            <div>
+                                <h1>Mentora</h1>
+                                <p>বাংলাদেশের জন্য AI মানসিক সুস্থতা প্ল্যাটফর্ম</p>
+                            </div>
                         </div>
-                        {errors.password && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                                <span>⚠️</span> {errors.password}
-                            </p>
-                        )}
-                        <p className="mt-1 text-xs text-gray-400">
-                            পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে
-                        </p>
-                    </div>
 
-                    {/* কনফার্ম পাসওয়ার্ড ফিল্ড */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            পাসওয়ার্ড নিশ্চিত করুন <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                                errors.confirmPassword ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                            }`}
-                            placeholder="••••••••"
-                        />
-                        {errors.confirmPassword && (
-                            <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                                <span>⚠️</span> {errors.confirmPassword}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* টার্মস এন্ড কন্ডিশন */}
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="terms"
-                            required
-                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                        />
-                        <label htmlFor="terms" className="text-sm text-gray-600">
-                            আমি <a href="#" className="text-purple-600 hover:underline">টার্মস এন্ড কন্ডিশন</a> মেনে নিচ্ছি
-                        </label>
-                    </div>
-
-                    {/* সাইনআপ বাটন */}
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold text-lg hover:shadow-lg hover:scale-105 transform transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100"
-                    >
-                        {isLoading ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <span className="animate-spin">⏳</span>
-                                একাউন্ট তৈরি হচ্ছে...
-                            </span>
-                        ) : (
-                            '🎉 একাউন্ট তৈরি করুন'
-                        )}
-                    </button>
-
-                    {/* লগইন লিংক */}
-                    <div className="text-center pt-4">
-                        <p className="text-sm text-gray-600">
-                            ইতিমধ্যে একাউন্ট আছে?{' '}
-                            <a href="#" className="font-semibold text-purple-600 hover:text-purple-700">
-                                লগইন করুন
+                        <div className="signup-top-actions">
+                            <a className="btn btn-secondary signup-link-btn" href="/">
+                                হোমে ফিরুন
                             </a>
+                            <a className="btn btn-primary signup-link-btn" href="#signup-form">
+                                লগইন
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="signup-copy-card">
+                        <span className="section-kicker">নতুন অ্যাকাউন্ট</span>
+                        <h2>একটি স্বস্তিদায়ক ডিজিটাল অভিজ্ঞতা, পুরোপুরি বাংলায়</h2>
+                        <p>
+                            মেন্টোরা এমনভাবে ডিজাইন করা হয়েছে যাতে আপনি সহজে সাইনআপ করতে পারেন, নিজের mental wellbeing journey শুরু করতে পারেন, আর প্রতিদিন একটু বেশি calm feel করতে পারেন।
                         </p>
-                    </div>
-                </form>
 
-                {/* অল্টারনেটিভ সাইনআপ */}
-                <div className="mt-8">
-                    <div className="relative">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-300"></div>
+                        <div className="signup-points">
+                            {signupBenefits.map((item) => (
+                                <div key={item} className="signup-chip">{item}</div>
+                            ))}
                         </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-white text-gray-500">অথবা সাইনআপ করুন</span>
+
+                        <div className="signup-insight-card">
+                            <span className="insight-label">কেন এটি আলাদা</span>
+                            <ul>
+                                {supportPoints.map((point) => (
+                                    <li key={point}>{point}</li>
+                                ))}
+                            </ul>
                         </div>
+
+                        <div className="signup-metrics">
+                            <article>
+                                <strong>৯৮%</strong>
+                                <span>ব্যবহারকারী সন্তুষ্টি</span>
+                            </article>
+                            <article>
+                                <strong>২৪/৭</strong>
+                                <span>সাপোর্ট কভারেজ</span>
+                            </article>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="signup-form-card reveal" id="signup-form">
+                    <div className="signup-form-header">
+                        <span className="section-kicker">সাইনআপ</span>
+                        <h2>আপনার অ্যাকাউন্ট তৈরি করুন</h2>
+                        <p>মাত্র কয়েক মিনিটে শুরু করুন। সবকিছুই সহজ, পরিষ্কার, আর বাংলায় রাখা হয়েছে।</p>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-2 gap-3">
-                        <button className="flex justify-center items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                            <span>📱</span> মোবাইল
+                    {successMessage && <div className="signup-success">{successMessage}</div>}
+
+                    <form onSubmit={handleSubmit} className="signup-form">
+                        <div className="field-grid">
+                            <label className="field">
+                                <span>আপনার নাম <b>*</b></span>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="যেমন: রাবিয়া খান"
+                                />
+                                {errors.name && <small className="field-error">{errors.name}</small>}
+                            </label>
+
+                            <label className="field">
+                                <span>ইমেইল ঠিকানা <b>*</b></span>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="name@example.com"
+                                />
+                                {errors.email && <small className="field-error">{errors.email}</small>}
+                            </label>
+                        </div>
+
+                        <label className="field">
+                            <span>মোবাইল নম্বর <em>(ঐচ্ছিক)</em></span>
+                            <input
+                                type="tel"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                placeholder="01XXXXXXXXX"
+                            />
+                            {errors.phone && <small className="field-error">{errors.phone}</small>}
+                        </label>
+
+                        <div className="field-grid">
+                            <label className="field">
+                                <span>পাসওয়ার্ড <b>*</b></span>
+                                <div className="password-field">
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        placeholder="কমপক্ষে ৬ অক্ষর"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle"
+                                        onClick={() => setShowPassword((previous) => !previous)}
+                                        aria-label={showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখান'}
+                                    >
+                                        {showPassword ? '🙈' : '👁️'}
+                                    </button>
+                                </div>
+                                {errors.password && <small className="field-error">{errors.password}</small>}
+                            </label>
+
+                            <label className="field">
+                                <span>পাসওয়ার্ড নিশ্চিত করুন <b>*</b></span>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder="আবার একই পাসওয়ার্ড"
+                                />
+                                {errors.confirmPassword && <small className="field-error">{errors.confirmPassword}</small>}
+                            </label>
+                        </div>
+
+                        <label className="terms-row">
+                            <input type="checkbox" required />
+                            <span>
+                                আমি <a href="#">শর্তাবলি</a> এবং <a href="#">গোপনীয়তা নীতি</a> মেনে নিচ্ছি।
+                            </span>
+                        </label>
+
+                        <button type="submit" className="btn btn-primary signup-submit" disabled={isLoading}>
+                            {isLoading ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'অ্যাকাউন্ট তৈরি করুন'}
                         </button>
-                        <button className="flex justify-center items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                            <span>🔑</span> OTP
-                        </button>
+
+                        <p className="signup-note">
+                            ইতিমধ্যে অ্যাকাউন্ট আছে? <a href="#">লগইন করুন</a>
+                        </p>
+                    </form>
+
+                    <div className="signup-divider">
+                        <span>অথবা</span>
                     </div>
-                </div>
+
+                    <div className="signup-social-grid">
+                        <button type="button" className="signup-social-btn">📱 মোবাইল OTP</button>
+                        <button type="button" className="signup-social-btn">🔑 ইমেইল লিংক</button>
+                    </div>
+                </section>
             </div>
-        </div>
+        </main>
     );
 };
 
