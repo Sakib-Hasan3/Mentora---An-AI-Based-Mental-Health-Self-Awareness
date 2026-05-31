@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const HeroSection = () => {
     return (
@@ -21,8 +22,8 @@ const HeroSection = () => {
                         <span>২৪/৭ সহায়তা</span>
                     </div>
                     <div className="hero-auth">
-                        <a className="btn btn-login" href="/login">সাইন ইন</a>
-                        <a className="btn btn-primary btn-signup" href="/signup">নতুন একাউন্ট</a>
+                        <Link className="btn btn-login" to="/login">সাইন ইন</Link>
+                        <Link className="btn btn-primary btn-signup" to="/signup">নতুন একাউন্ট</Link>
                     </div>
                 </header>
 
