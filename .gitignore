@@ -5,3 +5,4 @@
 .env.local
 .venv/
 backend/.venv/
+backend/yay-git/

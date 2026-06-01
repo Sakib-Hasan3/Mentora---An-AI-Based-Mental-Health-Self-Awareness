@@ -1,28 +1,18 @@
-from functools import lru_cache
-
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """Environment variable ভিত্তিক কনফিগারেশন।"""
+    APP_NAME: str = "Mental Health API"
+    DEBUG: bool = True
+    PORT: int = 8000
+    MONGODB_URL: str = "mongodb://localhost:27017"
+    DATABASE_NAME: str = "mental_health_db"
+    SECRET_KEY: str = "my_secret_key_123"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    port: int = Field(default=8000, alias="PORT")
-    mongodb_url: str = Field(default="mongodb://localhost:27017", alias="MONGODB_URL")
-    database_name: str = Field(default="mental_health_db", alias="DATABASE_NAME")
-    secret_key: str = Field(default="mysecretkey123", alias="SECRET_KEY")
-    algorithm: str = Field(default="HS256", alias="ALGORITHM")
-    access_token_expire_minutes: int = Field(default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
+    class Config:
+        env_file = ".env"
 
 
-@lru_cache(maxsize=1)
-def get_settings() -> Settings:
-    """একবার settings লোড করে cache করে রাখে।"""
-
-    return Settings()
+settings = Settings()

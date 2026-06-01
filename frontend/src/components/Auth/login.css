@@ -22,11 +22,13 @@
     linear-gradient(180deg, #061019 0%, #081521 48%, #050d15 100%);
   display:flex;
   align-items:center;
+  justify-content:center;
 }
 
 .login-layout{
   width:100%;
   max-width:1180px;
+  margin:0 auto;
   display:grid;
   grid-template-columns: 1.04fr 0.96fr;
   gap:28px;

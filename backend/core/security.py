@@ -1,43 +1,27 @@
-from datetime import datetime, timedelta, timezone
-
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-
-from .config import get_settings
-
-
-# bcrypt ব্যবহার করে password hash/verify করা হচ্ছে।
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+import hashlib
+import secrets
+from datetime import datetime, timedelta
+from jose import jwt
+from core.config import settings
 
 def hash_password(password: str) -> str:
-    """পাসওয়ার্ড hash করে দেয়।"""
-
-    return pwd_context.hash(password)
-
+    salt = secrets.token_hex(16)
+    hashed = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+    return f"{salt}${hashed.hex()}"
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Plain password আর hashed password মিলিয়ে দেখে।"""
+    salt, hash_value = hashed_password.split('$')
+    new_hash = hashlib.pbkdf2_hmac('sha256', plain_password.encode(), salt.encode(), 100000)
+    return new_hash.hex() == hash_value
 
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def create_token(subject: str, expires_delta: timedelta | None = None) -> str:
-    """JWT token তৈরি করে।"""
-
-    settings = get_settings()
-    expire_delta = expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
-    expire_at = datetime.now(timezone.utc) + expire_delta
-    payload = {"sub": subject, "exp": expire_at}
-    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
-
+def create_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 def decode_token(token: str) -> dict:
-    """JWT token ডিকোড করে payload return করে।"""
-
-    settings = get_settings()
-
     try:
-        return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-    except JWTError as exc:
-        raise ValueError("Invalid or expired token") from exc
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except:
+        return None

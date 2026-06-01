@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './login.css';
 
 const loginHighlights = [
@@ -17,6 +18,7 @@ const loginSupport = [
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const timeoutRef = useRef(null);
 
     const [formData, setFormData] = useState({
@@ -69,7 +71,7 @@ const Login = () => {
         return nextErrors;
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
         const validationErrors = validateForm();
@@ -82,48 +84,23 @@ const Login = () => {
         setIsLoading(true);
         setServerError('');
 
-        const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
-        const endpoint = new URL(process.env.REACT_APP_LOGIN_ENDPOINT || '/auth/login', apiBase).toString();
+        try {
+            const result = await login(formData.email.trim(), formData.password, formData.rememberMe);
 
-        fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: formData.email.trim(),
-                password: formData.password
-            })
-        })
-            .then(async (res) => {
-                const data = await res.json().catch(() => ({}));
+            if (!result.success) {
+                throw new Error(result.error || 'সার্ভারে কিছু ত্রুটি হয়েছে');
+            }
 
-                if (!res.ok) {
-                    const message = data?.detail || data?.message || 'সার্ভারে কিছু ত্রুটি হয়েছে';
-                    throw new Error(message);
-                }
+            setSuccessMessage('স্বাগতম ফিরে এসেছেন। এখন আপনার Mentora dashboard খুলছে।');
 
-                return data;
-            })
-            .then((data) => {
-                const authData = {
-                    token: data?.token || '',
-                    user: data?.user || null,
-                    rememberMe: formData.rememberMe
-                };
-
-                const storage = formData.rememberMe ? window.localStorage : window.sessionStorage;
-                storage.setItem('mentora_auth', JSON.stringify(authData));
-
-                setSuccessMessage('স্বাগতম ফিরে এসেছেন। এখন আপনার Mentora dashboard খুলছে।');
-                setIsLoading(false);
-
-                timeoutRef.current = window.setTimeout(() => {
-                    navigate('/dashboard');
-                }, 1100);
-            })
-            .catch((err) => {
-                setServerError(String(err.message || err));
-                setIsLoading(false);
-            });
+            timeoutRef.current = window.setTimeout(() => {
+                navigate('/dashboard');
+            }, 1100);
+        } catch (err) {
+            setServerError(String(err.message || err));
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

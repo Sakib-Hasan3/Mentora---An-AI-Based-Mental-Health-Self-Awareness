@@ -6,5 +6,8 @@
     "start": "npm --prefix frontend start",
     "install-frontend": "npm --prefix frontend install",
     "build-frontend": "npm --prefix frontend run build"
+  },
+  "dependencies": {
+    "react-router-dom": "^7.16.0"
   }
 }

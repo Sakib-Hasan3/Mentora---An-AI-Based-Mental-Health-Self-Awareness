@@ -1,72 +1,86 @@
-from fastapi import HTTPException, status
+from datetime import datetime
+from core.database import db
+from core.security import hash_password, verify_password, create_token
+from auth.schemas.auth import SignupRequest, LoginRequest
 
-from auth.models.user import UserModel
-from auth.schemas.auth import LoginRequest, LoginResponse, SignupRequest, SignupResponse, UserResponse
-from core.database import Database
-from core.security import create_token, hash_password, verify_password
+USER_COLLECTION = "users"
 
 
 class AuthService:
-    """লগইন ও সাইনআপের ব্যবসায়িক লজিক।"""
 
-    def __init__(self, database: Database) -> None:
-        self.database = database
-        self.collection = database.get_collection(UserModel.collection_name)
+    @staticmethod
+    async def signup(user_data: SignupRequest):
+        # ইমেইল চেক করুন
+        existing = await db.get_collection(USER_COLLECTION).find_one({
+            "email": user_data.email.lower()
+        })
 
-    async def signup(self, payload: SignupRequest) -> SignupResponse:
-        """নতুন ইউজার তৈরি করে এবং token দেয়।"""
+        if existing:
+            return {
+                "success": False,
+                "message": "এই ইমেইলে already একটি একাউন্ট আছে"
+            }
 
-        normalized_email = payload.email.strip().lower()
-        existing_user = await self.collection.find_one({"email": normalized_email})
+        # পাসওয়ার্ড হ্যাশ করুন
+        hashed = hash_password(user_data.password)
 
-        if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="এই ইমেইল দিয়ে আগে থেকেই অ্যাকাউন্ট আছে",
-            )
-
-        hashed_password = hash_password(payload.password)
-        user_document = UserModel.create(
-            name=payload.name,
-            email=normalized_email,
-            hashed_password=hashed_password,
-        )
-
-        insert_result = await self.collection.insert_one(user_document)
-        saved_user = {
-            **user_document,
-            "_id": insert_result.inserted_id,
+        # ইউজার তৈরি করুন
+        user_doc = {
+            "name": user_data.name,
+            "email": user_data.email.lower(),
+            "hashed_password": hashed,
+            "is_active": True,
+            "created_at": datetime.utcnow()
         }
-        token = create_token(subject=str(insert_result.inserted_id))
 
-        return SignupResponse(
-            message="অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে",
-            user=UserModel.from_db(saved_user),
-            token=token,
-        )
+        result = await db.get_collection(USER_COLLECTION).insert_one(user_doc)
 
-    async def login(self, payload: LoginRequest) -> LoginResponse:
-        """ইউজার যাচাই করে token দেয়।"""
+        # টোকেন তৈরি করুন
+        token = create_token({"sub": str(result.inserted_id), "email": user_data.email})
 
-        normalized_email = payload.email.strip().lower()
-        user_document = await self.collection.find_one({"email": normalized_email})
+        return {
+            "success": True,
+            "message": "🎉 একাউন্ট সফলভাবে তৈরি হয়েছে!",
+            "user": {
+                "id": str(result.inserted_id),
+                "name": user_data.name,
+                "email": user_data.email,
+                "is_active": True
+            },
+            "token": token
+        }
 
-        if not user_document:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="ইমেইল বা পাসওয়ার্ড ভুল",
-            )
+    @staticmethod
+    async def login(login_data: LoginRequest):
+        # ইউজার খুঁজুন
+        user = await db.get_collection(USER_COLLECTION).find_one({
+            "email": login_data.email.lower()
+        })
 
-        if not verify_password(payload.password, user_document["hashed_password"]):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="ইমেইল বা পাসওয়ার্ড ভুল",
-            )
+        if not user:
+            return {
+                "success": False,
+                "message": "ইমেইল বা পাসওয়ার্ড ভুল"
+            }
 
-        token = create_token(subject=str(user_document["_id"]))
+        # পাসওয়ার্ড চেক করুন
+        if not verify_password(login_data.password, user["hashed_password"]):
+            return {
+                "success": False,
+                "message": "ইমেইল বা পাসওয়ার্ড ভুল"
+            }
 
-        return LoginResponse(
-            message="সফলভাবে লগইন হয়েছে",
-            user=UserModel.from_db(user_document),
-            token=token,
-        )
+        # টোকেন তৈরি করুন
+        token = create_token({"sub": str(user["_id"]), "email": user["email"]})
+
+        return {
+            "success": True,
+            "message": "✅ লগইন সফল!",
+            "user": {
+                "id": str(user["_id"]),
+                "name": user["name"],
+                "email": user["email"],
+                "is_active": user.get("is_active", True)
+            },
+            "token": token
+        }
