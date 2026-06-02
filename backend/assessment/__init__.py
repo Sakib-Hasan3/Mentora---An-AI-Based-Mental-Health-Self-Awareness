@@ -1,0 +1,1 @@
+from assessment.routes.assessment import router as assessment_router
