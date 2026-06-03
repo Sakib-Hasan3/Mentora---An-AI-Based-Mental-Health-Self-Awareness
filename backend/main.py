@@ -7,6 +7,8 @@ from auth import auth_router
 from dashboard import dashboard_router
 from assessment import assessment_router
 from progress import progress_router
+from chatbot import chatbot_router
+from multimodal_rag.routes.multimodal import router as multimodal_router
 
 
 @asynccontextmanager
@@ -45,6 +47,9 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(assessment_router, prefix="/api")
 app.include_router(progress_router, prefix="/api")
+app.include_router(chatbot_router, prefix="/api")
+app.include_router(multimodal_router, prefix="/api")
+
 
 
 @app.get("/")
