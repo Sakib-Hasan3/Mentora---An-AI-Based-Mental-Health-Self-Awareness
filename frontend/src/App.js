@@ -7,11 +7,12 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import AssessmentPage from './pages/AssessmentPage';
 import ProgressPage from './pages/ProgressPage';
+import SupportPage from './pages/SupportPage';
 import './styles/globals.css';
 import './styles/dashboard.css';
 import './styles/assessment.css';
 import './styles/progress.css';
-
+import './styles/support.css';
 
 const ComingSoon = ({ title }) => (
     <div className="dashboard-container">
@@ -31,7 +32,6 @@ const ComingSoon = ({ title }) => (
         </main>
     </div>
 );
-
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -55,13 +55,13 @@ function AppRoutes() {
             <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
             <Route path="/assessment" element={user ? <AssessmentPage /> : <Navigate to="/login" />} />
             <Route path="/progress" element={user ? <ProgressPage /> : <Navigate to="/login" />} />
+            <Route path="/support" element={user ? <SupportPage /> : <Navigate to="/login" />} />
             
             {/* Coming Soon Routes */}
             <Route path="/assessment/history" element={user ? <ComingSoon title="অ্যাসেসমেন্ট ইতিহাস" /> : <Navigate to="/login" />} />
             <Route path="/books" element={user ? <ComingSoon title="বুক জার্নাল" /> : <Navigate to="/login" />} />
             <Route path="/community" element={user ? <ComingSoon title="কমিউনিটি" /> : <Navigate to="/login" />} />
             <Route path="/consultants" element={user ? <ComingSoon title="মেন্টাল কনসালট্যান্ট" /> : <Navigate to="/login" />} />
-            <Route path="/support" element={user ? <ComingSoon title="২৪/৭ সাপোর্ট" /> : <Navigate to="/login" />} />
             <Route path="/profile" element={user ? <ComingSoon title="প্রোফাইল" /> : <Navigate to="/login" />} />
             <Route path="/privacy" element={user ? <ComingSoon title="গোপনীয়তা" /> : <Navigate to="/login" />} />
             <Route path="/mobile" element={user ? <ComingSoon title="মোবাইল অ্যাপ" /> : <Navigate to="/login" />} />
@@ -73,7 +73,6 @@ function AppRoutes() {
     );
 }
 
-
 function App() {
     return (
         <BrowserRouter>
@@ -83,6 +82,5 @@ function App() {
         </BrowserRouter>
     );
 }
-
 
 export default App;
