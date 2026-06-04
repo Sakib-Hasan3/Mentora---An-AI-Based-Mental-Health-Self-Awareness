@@ -8,6 +8,7 @@ from dashboard import dashboard_router
 from assessment import assessment_router
 from progress import progress_router
 from chatbot import chatbot_router
+from books import books_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,6 +38,7 @@ app.include_router(dashboard_router, prefix="/api")
 app.include_router(assessment_router, prefix="/api")
 app.include_router(progress_router, prefix="/api")
 app.include_router(chatbot_router, prefix="/api")
+app.include_router(books_router, prefix="/api")
 
 @app.get("/")
 def root():
@@ -66,10 +68,13 @@ def root():
                 "yearly": "GET /api/progress/yearly",
                 "milestones": "GET /api/progress/milestones"
             },
-            "chatbot": {
-                "chat": "POST /api/chatbot/chat",
-                "sessions": "GET /api/chatbot/sessions",
-                "history": "GET /api/chatbot/history/{session_id}"
+            "books": {
+                "books": "GET /api/books/books",
+                "articles": "GET /api/books/articles",
+                "videos": "GET /api/books/videos",
+                "quotes": "GET /api/books/quotes",
+                "featured": "GET /api/books/featured",
+                "categories": "GET /api/books/categories"
             }
         }
     }
