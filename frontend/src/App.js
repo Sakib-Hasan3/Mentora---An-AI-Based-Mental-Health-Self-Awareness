@@ -14,6 +14,7 @@ import './styles/dashboard.css';
 import './styles/assessment.css';
 import './styles/progress.css';
 import './styles/support.css';
+import './styles/books.css';
 
 const ComingSoon = ({ title }) => (
     <div className="dashboard-container">
@@ -47,20 +48,17 @@ function AppRoutes() {
     
     return (
         <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to="/dashboard" />} />
             <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
-            
-            {/* Protected Routes */}
             <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
             <Route path="/assessment" element={user ? <AssessmentPage /> : <Navigate to="/login" />} />
             <Route path="/progress" element={user ? <ProgressPage /> : <Navigate to="/login" />} />
             <Route path="/support" element={user ? <SupportPage /> : <Navigate to="/login" />} />
+            <Route path="/books" element={user ? <BooksPage /> : <Navigate to="/login" />} />
             
             {/* Coming Soon Routes */}
             <Route path="/assessment/history" element={user ? <ComingSoon title="অ্যাসেসমেন্ট ইতিহাস" /> : <Navigate to="/login" />} />
-            <Route path="/books" element={user ? <ComingSoon title="বুক জার্নাল" /> : <Navigate to="/login" />} />
             <Route path="/community" element={user ? <ComingSoon title="কমিউনিটি" /> : <Navigate to="/login" />} />
             <Route path="/consultants" element={user ? <ComingSoon title="মেন্টাল কনসালট্যান্ট" /> : <Navigate to="/login" />} />
             <Route path="/profile" element={user ? <ComingSoon title="প্রোফাইল" /> : <Navigate to="/login" />} />
@@ -70,7 +68,6 @@ function AppRoutes() {
             <Route path="/activities" element={user ? <ComingSoon title="সব কার্যকলাপ" /> : <Navigate to="/login" />} />
             <Route path="/stress-management" element={user ? <ComingSoon title="স্ট্রেস ম্যানেজমেন্ট" /> : <Navigate to="/login" />} />
             <Route path="/meditation" element={user ? <ComingSoon title="মেডিটেশন" /> : <Navigate to="/login" />} />
-            <Route path="/books" element={user ? <BooksPage /> : <Navigate to="/login" />} />
         </Routes>
     );
 }
