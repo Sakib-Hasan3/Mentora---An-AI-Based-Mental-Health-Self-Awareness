@@ -8,8 +8,6 @@ from dashboard import dashboard_router
 from assessment import assessment_router
 from progress import progress_router
 from chatbot import chatbot_router
-from multimodal_rag.routes.multimodal import router as multimodal_router
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,7 +17,6 @@ async def lifespan(app: FastAPI):
     yield
     await db.disconnect()
 
-
 app = FastAPI(
     title="Mental Health API",
     description="Mental Health Assessment & Dashboard API",
@@ -27,30 +24,19 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://192.168.98.226:3000",
-        "http://192.168.163.226:3000",
-        "*"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 app.include_router(assessment_router, prefix="/api")
 app.include_router(progress_router, prefix="/api")
 app.include_router(chatbot_router, prefix="/api")
-app.include_router(multimodal_router, prefix="/api")
-
-
 
 @app.get("/")
 def root():
@@ -79,10 +65,14 @@ def root():
                 "monthly": "GET /api/progress/monthly",
                 "yearly": "GET /api/progress/yearly",
                 "milestones": "GET /api/progress/milestones"
+            },
+            "chatbot": {
+                "chat": "POST /api/chatbot/chat",
+                "sessions": "GET /api/chatbot/sessions",
+                "history": "GET /api/chatbot/history/{session_id}"
             }
         }
     }
-
 
 @app.get("/health")
 def health_check():
