@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import AssessmentPage from './pages/AssessmentPage';
 import ProgressPage from './pages/ProgressPage';
 import SupportPage from './pages/SupportPage';
+import BooksPage from './pages/BooksPage';
 import './styles/globals.css';
 import './styles/dashboard.css';
 import './styles/assessment.css';
@@ -69,6 +70,7 @@ function AppRoutes() {
             <Route path="/activities" element={user ? <ComingSoon title="সব কার্যকলাপ" /> : <Navigate to="/login" />} />
             <Route path="/stress-management" element={user ? <ComingSoon title="স্ট্রেস ম্যানেজমেন্ট" /> : <Navigate to="/login" />} />
             <Route path="/meditation" element={user ? <ComingSoon title="মেডিটেশন" /> : <Navigate to="/login" />} />
+            <Route path="/books" element={user ? <BooksPage /> : <Navigate to="/login" />} />
         </Routes>
     );
 }
