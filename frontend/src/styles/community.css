@@ -1,0 +1,432 @@
+.community-container {
+    min-height: 100vh;
+    background: linear-gradient(90deg, #0E1E19 0%, #162420 40%, #202920 100%);
+}
+
+.community-header {
+    background: rgba(14, 30, 25, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.community-header h1 {
+    color: #eff8f3;
+    font-size: 1.5rem;
+}
+
+.community-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+}
+
+/* Sidebar */
+.community-sidebar {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+}
+
+.sidebar-title {
+    color: #eff8f3;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.divisions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.division-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    color: #a8c0b5;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.division-btn:hover {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.division-btn.active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-left: 3px solid #10b981;
+}
+
+/* Main Feed */
+.community-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Create Post Card */
+.create-post-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+}
+
+.create-post-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.create-post-avatar {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.create-post-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem;
+    color: #eff8f3;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.create-post-input:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Post Card */
+.post-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+}
+
+.post-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.post-user {
+    display: flex;
+    gap: 1rem;
+}
+
+.post-avatar {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.post-user-info {
+    flex: 1;
+}
+
+.post-user-name {
+    color: #eff8f3;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.post-location {
+    color: #a8c0b5;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.post-time {
+    color: #a8c0b5;
+    font-size: 0.7rem;
+}
+
+.post-title {
+    color: #eff8f3;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.post-content {
+    color: #a8c0b5;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.post-tag {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 0.2rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    color: #10b981;
+}
+
+.post-actions {
+    display: flex;
+    gap: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.post-action-btn {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #a8c0b5;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.85rem;
+}
+
+.post-action-btn:hover {
+    color: #10b981;
+}
+
+.post-action-btn.liked {
+    color: #ef4444;
+}
+
+/* Comment Section */
+.comments-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.comment-form {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.comment-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    color: #eff8f3;
+    font-size: 0.85rem;
+}
+
+.comment-submit {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 20px;
+    padding: 0.25rem 1rem;
+    color: #10b981;
+    cursor: pointer;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.comment-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+}
+
+.comment-avatar {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.comment-content {
+    flex: 1;
+}
+
+.comment-user {
+    color: #eff8f3;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.comment-text {
+    color: #a8c0b5;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #162420;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-title {
+    color: #eff8f3;
+    font-size: 1.2rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #a8c0b5;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-field {
+    margin-bottom: 1rem;
+}
+
+.modal-field label {
+    display: block;
+    color: #a8c0b5;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.modal-field input,
+.modal-field textarea,
+.modal-field select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
+    color: #eff8f3;
+}
+
+.modal-field textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.modal-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-checkbox label {
+    margin-bottom: 0;
+}
+
+.modal-submit {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 2rem;
+    color: #a8c0b5;
+}
+
+@media (max-width: 768px) {
+    .community-content {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+    
+    .community-sidebar {
+        position: static;
+        margin-bottom: 1rem;
+    }
+    
+    .divisions-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
