@@ -1,0 +1,350 @@
+.consultant-container {
+    min-height: 100vh;
+    background: linear-gradient(90deg, #0E1E19 0%, #162420 40%, #202920 100%);
+}
+
+.consultant-header {
+    background: rgba(14, 30, 25, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.consultant-header h1 {
+    color: #eff8f3;
+    font-size: 1.5rem;
+}
+
+.back-btn {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: #10b981;
+    cursor: pointer;
+}
+
+.consultant-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+}
+
+.filter-sidebar {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 80px;
+}
+
+.filter-title {
+    color: #eff8f3;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filter-group {
+    margin-bottom: 1.5rem;
+}
+
+.filter-label {
+    color: #a8c0b5;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.filter-select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem;
+    color: #eff8f3;
+}
+
+.filter-reset {
+    width: 100%;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 0.5rem;
+    border-radius: 8px;
+    color: #10b981;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.consultants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+}
+
+.consultant-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.consultant-card:hover {
+    transform: translateY(-5px);
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.consultant-image {
+    height: 160px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+}
+
+.consultant-info {
+    padding: 1.5rem;
+}
+
+.consultant-name {
+    color: #eff8f3;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.consultant-degree {
+    color: #10b981;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.consultant-specialization {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.specialization-tag {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 0.2rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    color: #10b981;
+}
+
+.consultant-details {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    color: #a8c0b5;
+}
+
+.consultant-rating {
+    color: #f59e0b;
+}
+
+.consultant-fee {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.book-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    padding: 0.6rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #162420;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-title {
+    color: #eff8f3;
+    font-size: 1.2rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #a8c0b5;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-field {
+    margin-bottom: 1rem;
+}
+
+.modal-field label {
+    display: block;
+    color: #a8c0b5;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.modal-field input,
+.modal-field select,
+.modal-field textarea {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.7rem;
+    color: #eff8f3;
+}
+
+.modal-submit {
+    width: 100%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.my-bookings-section {
+    margin-top: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.5rem;
+}
+
+.section-title {
+    color: #eff8f3;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.booking-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.booking-info {
+    flex: 1;
+}
+
+.booking-consultant {
+    color: #eff8f3;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.booking-datetime {
+    color: #a8c0b5;
+    font-size: 0.8rem;
+}
+
+.booking-status {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+}
+
+.status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+.status-confirmed { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.status-cancelled { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+.cancel-btn {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    color: #ef4444;
+    cursor: pointer;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 2rem;
+    color: #a8c0b5;
+}
+
+@media (max-width: 768px) {
+    .consultant-content {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+    .filter-sidebar {
+        position: static;
+    }
+    .consultants-grid {
+        grid-template-columns: 1fr;
+    }
+    .booking-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+}
