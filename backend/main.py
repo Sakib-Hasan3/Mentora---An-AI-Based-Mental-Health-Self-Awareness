@@ -9,6 +9,7 @@ from assessment import assessment_router
 from progress import progress_router
 from chatbot import chatbot_router
 from books import books_router
+from community import community_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -39,6 +40,7 @@ app.include_router(assessment_router, prefix="/api")
 app.include_router(progress_router, prefix="/api")
 app.include_router(chatbot_router, prefix="/api")
 app.include_router(books_router, prefix="/api")
+app.include_router(community_router, prefix="/api")
 
 @app.get("/")
 def root():
