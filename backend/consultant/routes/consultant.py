@@ -36,7 +36,7 @@ DEMO_CONSULTANTS = [
         "online_available": True,
         "phone": "01712345678",
         "email": "sarah@mentora.com",
-        "bio": "প্রায় ৮ বছর ধরে মানসিক স্বাস্থ্য সেবা প্রদান করে আসছি। বিশেষভাবে বিষণ্ণতা ও উদ্বেগজনিত সমস্যায় অভিজ্ঞ।",
+        "bio": "প্রায় ৮ বছর ধরে মানসিক স্বাস্থ্য সেবা প্রদান করে আসছি।",
         "image": "/consultants/sarah.jpg"
     },
     {
@@ -57,7 +57,7 @@ DEMO_CONSULTANTS = [
         "online_available": True,
         "phone": "01812345678",
         "email": "zahid@mentora.com",
-        "bio": "১৫ বছরের অভিজ্ঞতা সম্পন্ন সাইকিয়াট্রিস্ট। বাইপোলার ডিসঅর্ডার ও সাইকোসিস চিকিৎসায় বিশেষজ্ঞ।",
+        "bio": "১৫ বছরের অভিজ্ঞতা সম্পন্ন সাইকিয়াট্রিস্ট।",
         "image": "/consultants/zahid.jpg"
     },
     {
@@ -111,7 +111,7 @@ async def init_consultants():
         if not existing:
             await db.get_collection(CONSULTANTS_COLLECTION).insert_one(ConsultantModel.create(consultant))
 
-@router.get("/", response_model=ConsultantsListResponse)
+@router.get("/")
 async def get_consultants(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
@@ -140,19 +140,31 @@ async def get_consultants(
         "limit": limit
     }
 
-@router.get("/{consultant_id}", response_model=ConsultantResponse)
-async def get_consultant(consultant_id: str, current_user: dict = Depends(get_current_user)):
-    consultant = await db.get_collection(CONSULTANTS_COLLECTION).find_one({"_id": ObjectId(consultant_id)})
-    if not consultant:
-        raise HTTPException(status_code=404, detail="Consultant not found")
-    return ConsultantModel.from_db(consultant)
+@router.get("/my-bookings")
+async def get_my_bookings(current_user: dict = Depends(get_current_user)):
+    bookings = await db.get_collection(BOOKINGS_COLLECTION).find(
+        {"user_id": current_user["id"]}
+    ).sort("created_at", -1).to_list(length=50)
+    
+    result = []
+    for booking in bookings:
+        consultant = await db.get_collection(CONSULTANTS_COLLECTION).find_one({"_id": ObjectId(booking["consultant_id"])})
+        result.append({
+            "id": str(booking["_id"]),
+            "consultant_id": booking["consultant_id"],
+            "consultant_name": consultant["name"] if consultant else "Unknown",
+            "consultant_name_bn": consultant.get("name_bn") if consultant else "Unknown",
+            "date": booking["date"],
+            "time": booking["time"],
+            "type": booking["type"],
+            "meeting_link": booking.get("meeting_link"),
+            "status": booking["status"],
+            "created_at": booking["created_at"]
+        })
+    
+    return {"success": True, "bookings": result}
 
-@router.get("/{consultant_id}/reviews")
-async def get_consultant_reviews(consultant_id: str, current_user: dict = Depends(get_current_user)):
-    reviews = await db.get_collection(REVIEWS_COLLECTION).find({"consultant_id": consultant_id}).sort("created_at", -1).to_list(length=50)
-    return {"success": True, "reviews": [ReviewModel.from_db(r) for r in reviews]}
-
-@router.post("/{consultant_id}/book", response_model=BookingResponse)
+@router.post("/{consultant_id}/book")
 async def book_appointment(
     consultant_id: str,
     booking_data: BookingRequest,
@@ -176,7 +188,7 @@ async def book_appointment(
     if booking_data.type == "online":
         meeting_link = f"https://meet.google.com/{uuid.uuid4().hex[:8]}"
     
-    booking_doc = BookingModel.create({
+    booking_doc = {
         "consultant_id": consultant_id,
         "user_id": current_user["id"],
         "user_name": current_user["name"],
@@ -186,8 +198,11 @@ async def book_appointment(
         "time": booking_data.time,
         "type": booking_data.type,
         "meeting_link": meeting_link,
-        "notes": booking_data.notes
-    })
+        "notes": booking_data.notes,
+        "status": "pending",
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
     
     result = await db.get_collection(BOOKINGS_COLLECTION).insert_one(booking_doc)
     
@@ -197,29 +212,6 @@ async def book_appointment(
         "booking_id": str(result.inserted_id),
         "meeting_link": meeting_link
     }
-
-@router.get("/my-bookings")
-async def get_my_bookings(current_user: dict = Depends(get_current_user)):
-    bookings = await db.get_collection(BOOKINGS_COLLECTION).find(
-        {"user_id": current_user["id"]}
-    ).sort("created_at", -1).to_list(length=50)
-    
-    result = []
-    for booking in bookings:
-        consultant = await db.get_collection(CONSULTANTS_COLLECTION).find_one({"_id": ObjectId(booking["consultant_id"])})
-        result.append({
-            "id": str(booking["_id"]),
-            "consultant_name": consultant["name"] if consultant else "Unknown",
-            "consultant_name_bn": consultant.get("name_bn") if consultant else "Unknown",
-            "date": booking["date"],
-            "time": booking["time"],
-            "type": booking["type"],
-            "meeting_link": booking.get("meeting_link"),
-            "status": booking["status"],
-            "created_at": booking["created_at"]
-        })
-    
-    return {"success": True, "bookings": result}
 
 @router.put("/bookings/{booking_id}/cancel")
 async def cancel_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
@@ -237,7 +229,7 @@ async def cancel_booking(booking_id: str, current_user: dict = Depends(get_curre
     
     return {"success": True, "message": "Booking cancelled successfully"}
 
-@router.post("/{consultant_id}/review", response_model=ReviewResponse)
+@router.post("/{consultant_id}/review")
 async def add_review(
     consultant_id: str,
     review_data: ReviewRequest,
@@ -247,13 +239,14 @@ async def add_review(
     if not consultant:
         raise HTTPException(status_code=404, detail="Consultant not found")
     
-    review_doc = ReviewModel.create({
+    review_doc = {
         "consultant_id": consultant_id,
         "user_id": current_user["id"],
         "user_name": current_user["name"],
         "rating": review_data.rating,
-        "comment": review_data.comment
-    })
+        "comment": review_data.comment,
+        "created_at": datetime.utcnow()
+    }
     
     await db.get_collection(REVIEWS_COLLECTION).insert_one(review_doc)
     
@@ -267,3 +260,22 @@ async def add_review(
     )
     
     return {"success": True, "message": "Review added successfully"}
+
+@router.get("/{consultant_id}")
+async def get_consultant(consultant_id: str, current_user: dict = Depends(get_current_user)):
+    if not ObjectId.is_valid(consultant_id):
+        raise HTTPException(status_code=400, detail="Invalid consultant ID")
+    
+    consultant = await db.get_collection(CONSULTANTS_COLLECTION).find_one({"_id": ObjectId(consultant_id)})
+    if not consultant:
+        raise HTTPException(status_code=404, detail="Consultant not found")
+    
+    return ConsultantModel.from_db(consultant)
+
+@router.get("/{consultant_id}/reviews")
+async def get_consultant_reviews(consultant_id: str, current_user: dict = Depends(get_current_user)):
+    if not ObjectId.is_valid(consultant_id):
+        raise HTTPException(status_code=400, detail="Invalid consultant ID")
+    
+    reviews = await db.get_collection(REVIEWS_COLLECTION).find({"consultant_id": consultant_id}).sort("created_at", -1).to_list(length=50)
+    return {"success": True, "reviews": [ReviewModel.from_db(r) for r in reviews]}
