@@ -8,6 +8,7 @@ from consultant.schemas.consultant import (
     ConsultantResponse, BookingRequest, BookingResponse,
     ReviewRequest, ReviewResponse, ConsultantsListResponse
 )
+from notifications.services.notification_service import notification_service
 import uuid
 from datetime import datetime
 
@@ -205,6 +206,14 @@ async def book_appointment(
     }
     
     result = await db.get_collection(BOOKINGS_COLLECTION).insert_one(booking_doc)
+    
+    # 🔔 বুকিং নিশ্চিতের নোটিফিকেশন পাঠান
+    await notification_service.notify_booking_confirmed(
+        user_id=current_user["id"],
+        consultant_name=consultant["name"],
+        date=booking_data.date,
+        time=booking_data.time
+    )
     
     return {
         "success": True,
