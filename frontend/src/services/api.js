@@ -1,9 +1,14 @@
 const API_URL = 'http://localhost:8000/api';
 
-const getToken = () => localStorage.getItem('token');
+const getToken = () => {
+    const token = localStorage.getItem('token');
+    console.log('Token from localStorage:', token ? token.substring(0, 50) + '...' : 'No token');
+    return token;
+};
 
 const handleResponse = async (response) => {
     if (response.status === 401) {
+        console.log('401 Unauthorized - clearing token');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
@@ -29,6 +34,9 @@ const request = async (endpoint, options = {}) => {
     
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        console.log(`Request to ${endpoint} with auth header`);
+    } else {
+        console.log(`Request to ${endpoint} WITHOUT auth header`);
     }
     
     const response = await fetch(`${API_URL}${endpoint}`, {
