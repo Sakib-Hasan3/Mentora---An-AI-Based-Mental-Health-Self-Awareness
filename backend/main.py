@@ -12,14 +12,37 @@ from books import books_router
 from community import community_router
 from consultant import consultant_router
 from notifications import notifications_router
+import asyncio
+from datetime import datetime
+from scheduler import check_assessment_reminders, send_daily_meditation_reminder
+
+
+async def start_background_tasks():
+    """Background task for sending automatic notifications"""
+    while True:
+        now = datetime.utcnow()
+        
+        # Send assessment reminder every day at 10 AM
+        if now.hour == 10 and now.minute == 0:
+            asyncio.create_task(check_assessment_reminders())
+        
+        # Send meditation reminder every day at 8 AM
+        if now.hour == 8 and now.minute == 0:
+            asyncio.create_task(send_daily_meditation_reminder())
+        
+        await asyncio.sleep(60)  # Check every minute
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup
     await db.connect()
+    asyncio.create_task(start_background_tasks())
     print(f"🚀 Server running on http://localhost:{settings.PORT}")
     print(f"📚 API Docs: http://localhost:{settings.PORT}/docs")
+    print(f"🔔 Notification scheduler started (8AM - Meditation, 10AM - Assessment Reminder)")
     yield
+    # Shutdown
     await db.disconnect()
 
 
@@ -90,6 +113,12 @@ def root():
                 "list": "GET /api/consultants/",
                 "book": "POST /api/consultants/{id}/book",
                 "my_bookings": "GET /api/consultants/my-bookings"
+            },
+            "notifications": {
+                "list": "GET /api/notifications/",
+                "unread_count": "GET /api/notifications/unread-count",
+                "mark_read": "PUT /api/notifications/{id}/read",
+                "mark_all_read": "PUT /api/notifications/mark-all-read"
             }
         }
     }
@@ -100,5 +129,5 @@ def health_check():
     return {
         "status": "healthy",
         "database": "connected" if db.client else "disconnected",
-        "timestamp": __import__("datetime").datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat()
     }
