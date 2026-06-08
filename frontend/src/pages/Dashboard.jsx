@@ -15,6 +15,8 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('weekly');
     const [showNotifications, setShowNotifications] = useState(false);
+    const [quickAssessmentResult, setQuickAssessmentResult] = useState(null);
+    const [showQuickAssessment, setShowQuickAssessment] = useState(false);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -36,6 +38,7 @@ const Dashboard = () => {
         
         fetchDashboardData();
         fetchNotifications();
+        fetchQuickAssessmentHistory();
     }, []);
 
     const fetchNotifications = async () => {
@@ -45,6 +48,17 @@ const Dashboard = () => {
             setUnreadCount(data.unread_count || 0);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
+        }
+    };
+
+    const fetchQuickAssessmentHistory = async () => {
+        try {
+            const data = await api.get('/ml-assessment/history');
+            if (data.history && data.history.length > 0) {
+                setQuickAssessmentResult(data.history[0]);
+            }
+        } catch (error) {
+            console.error('Failed to fetch assessment history:', error);
         }
     };
 
@@ -86,6 +100,14 @@ const Dashboard = () => {
             desc: 'এআই-চালিত বিশ্লেষণ পান',
             route: '/assessment',
             color: 'linear-gradient(135deg, #667eea, #764ba2)'
+        },
+        { 
+            icon: '⚡', 
+            title: 'দ্রুত মানসিক স্বাস্থ্য পরীক্ষা', 
+            desc: '৪টি প্রশ্নে ঝুঁকি বিশ্লেষণ (71.55% নির্ভুল)',
+            route: '/quick-assessment',
+            color: 'linear-gradient(135deg, #10b981, #059669)',
+            isNew: true
         },
         { 
             icon: '📊', 
@@ -239,6 +261,45 @@ const Dashboard = () => {
                     </div>
                 </div>
 
+                {/* Quick Assessment Banner */}
+                <div 
+                    className="quick-assessment-banner"
+                    onClick={() => navigate('/quick-assessment')}
+                    style={{ cursor: 'pointer' }}
+                >
+                    <div className="quick-assessment-content">
+                        <div className="quick-assessment-icon">⚡</div>
+                        <div className="quick-assessment-text">
+                            <h3>দ্রুত মানসিক স্বাস্থ্য পরীক্ষা</h3>
+                            <p>৪টি প্রশ্নের উত্তর দিন - AI মডেল 71.55% নির্ভুলতায় বিশ্লেষণ করবে</p>
+                        </div>
+                        <div className="quick-assessment-arrow">→</div>
+                    </div>
+                </div>
+
+                {/* Quick Assessment Result Card (if exists) */}
+                {quickAssessmentResult && (
+                    <div className="quick-result-card">
+                        <div className="quick-result-header">
+                            <span className="quick-result-icon">📊</span>
+                            <span className="quick-result-title">আপনার সর্বশেষ দ্রুত মূল্যায়ন</span>
+                        </div>
+                        <div className="quick-result-body">
+                            <div className="quick-result-score">
+                                ঝুঁকি স্কোর: <strong>{Math.round(quickAssessmentResult.risk_score * 100)}%</strong>
+                            </div>
+                            <div className={`quick-result-status ${quickAssessmentResult.needs_treatment ? 'needs-treatment' : 'safe'}`}>
+                                {quickAssessmentResult.needs_treatment ? '⚠️ পরামর্শ প্রয়োজন' : '✅ সুস্থ অবস্থায় আছেন'}
+                            </div>
+                        </div>
+                        <div className="quick-result-footer">
+                            <button onClick={() => navigate('/quick-assessment')} className="quick-result-btn">
+                                বিস্তারিত দেখুন →
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <div className="stats-grid">
                     <div className="stat-card" onClick={() => navigate('/assessment')} style={{ cursor: 'pointer' }}>
                         <div className="stat-header">
@@ -284,7 +345,10 @@ const Dashboard = () => {
                         {features.map((feature, index) => (
                             <div key={index} className="feature-item" onClick={() => navigate(feature.route)} style={{ cursor: 'pointer' }}>
                                 <div className="feature-icon" style={{ background: feature.color }}>{feature.icon}</div>
-                                <div className="feature-text"><h4>{feature.title}</h4><p>{feature.desc}</p></div>
+                                <div className="feature-text">
+                                    <h4>{feature.title} {feature.isNew && <span className="new-badge">NEW</span>}</h4>
+                                    <p>{feature.desc}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -346,10 +410,10 @@ const Dashboard = () => {
                         <button className="action-btn">শুরু করুন →</button>
                     </div>
                     
-                    <div className="action-card" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', cursor: 'pointer' }} onClick={() => navigate('/meditation')}>
-                        <div className="action-icon">🧘</div>
-                        <h4 className="action-title">মেডিটেশন সেশন</h4>
-                        <p className="action-desc">১০ মিনিটের গাইডেড মেডিটেশন</p>
+                    <div className="action-card" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', cursor: 'pointer' }} onClick={() => navigate('/quick-assessment')}>
+                        <div className="action-icon">⚡</div>
+                        <h4 className="action-title">দ্রুত পরীক্ষা</h4>
+                        <p className="action-desc">৪টি প্রশ্নে ঝুঁকি বিশ্লেষণ (71.55% নির্ভুল)</p>
                         <button className="action-btn">শুরু করুন →</button>
                     </div>
                     
@@ -361,6 +425,103 @@ const Dashboard = () => {
                     </div>
                 </div>
             </main>
+
+            <style>{`
+                .quick-assessment-banner {
+                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.08));
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                    border-radius: 16px;
+                    padding: 1rem 1.5rem;
+                    margin-bottom: 2rem;
+                    transition: all 0.3s;
+                }
+                .quick-assessment-banner:hover {
+                    transform: translateY(-2px);
+                    background: rgba(16, 185, 129, 0.2);
+                }
+                .quick-assessment-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                }
+                .quick-assessment-icon {
+                    font-size: 2rem;
+                }
+                .quick-assessment-text {
+                    flex: 1;
+                }
+                .quick-assessment-text h3 {
+                    color: #10b981;
+                    font-size: 1.1rem;
+                    margin-bottom: 0.25rem;
+                }
+                .quick-assessment-text p {
+                    color: #a8c0b5;
+                    font-size: 0.85rem;
+                }
+                .quick-assessment-arrow {
+                    color: #10b981;
+                    font-size: 1.5rem;
+                }
+                .quick-result-card {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 16px;
+                    padding: 1rem;
+                    margin-bottom: 2rem;
+                }
+                .quick-result-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                .quick-result-icon {
+                    font-size: 1.2rem;
+                }
+                .quick-result-title {
+                    color: #a8c0b5;
+                    font-size: 0.85rem;
+                }
+                .quick-result-body {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 0.5rem;
+                }
+                .quick-result-score {
+                    color: #eff8f3;
+                    font-size: 0.9rem;
+                }
+                .quick-result-status {
+                    font-size: 0.85rem;
+                    padding: 0.2rem 0.6rem;
+                    border-radius: 20px;
+                }
+                .quick-result-status.needs-treatment {
+                    background: rgba(239, 68, 68, 0.2);
+                    color: #ef4444;
+                }
+                .quick-result-status.safe {
+                    background: rgba(16, 185, 129, 0.2);
+                    color: #10b981;
+                }
+                .quick-result-btn {
+                    background: none;
+                    border: none;
+                    color: #10b981;
+                    cursor: pointer;
+                    font-size: 0.8rem;
+                }
+                .new-badge {
+                    background: #ef4444;
+                    color: white;
+                    font-size: 0.6rem;
+                    padding: 0.1rem 0.3rem;
+                    border-radius: 4px;
+                    margin-left: 0.3rem;
+                }
+            `}</style>
         </div>
     );
 };
