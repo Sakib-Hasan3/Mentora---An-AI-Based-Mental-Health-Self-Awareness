@@ -11,6 +11,7 @@ from chatbot import chatbot_router
 from books import books_router
 from community import community_router
 from consultant import consultant_router
+from notifications import notifications_router
 
 
 @asynccontextmanager
@@ -47,6 +48,7 @@ app.include_router(chatbot_router, prefix="/api")
 app.include_router(books_router, prefix="/api")
 app.include_router(community_router, prefix="/api")
 app.include_router(consultant_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
 
 
 @app.get("/")
