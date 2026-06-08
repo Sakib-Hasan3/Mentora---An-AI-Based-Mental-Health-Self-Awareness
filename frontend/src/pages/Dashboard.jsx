@@ -10,8 +10,11 @@ const Dashboard = () => {
     const [stats, setStats] = useState(null);
     const [chartData, setChartData] = useState(null);
     const [activities, setActivities] = useState(null);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('weekly');
+    const [showNotifications, setShowNotifications] = useState(false);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -32,7 +35,42 @@ const Dashboard = () => {
         };
         
         fetchDashboardData();
+        fetchNotifications();
     }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            const data = await api.get('/notifications/?limit=5');
+            setNotifications(data.notifications || []);
+            setUnreadCount(data.unread_count || 0);
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+        }
+    };
+
+    const markNotificationAsRead = async (notificationId) => {
+        try {
+            await api.put(`/notifications/${notificationId}/read`);
+            setNotifications(prev => prev.map(n => 
+                n.id === notificationId ? { ...n, is_read: true } : n
+            ));
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        } catch (error) {
+            console.error('Failed to mark as read:', error);
+        }
+    };
+
+    const formatDate = (date) => {
+        if (!date) return '';
+        const d = new Date(date);
+        const now = new Date();
+        const diff = Math.floor((now - d) / 1000 / 60);
+        
+        if (diff < 1) return 'এখনই';
+        if (diff < 60) return `${diff} মিনিট আগে`;
+        if (diff < 1440) return `${Math.floor(diff / 60)} ঘণ্টা আগে`;
+        return `${Math.floor(diff / 1440)} দিন আগে`;
+    };
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -113,7 +151,6 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-container">
-            {/* Header */}
             <header className="dashboard-header">
                 <div className="dashboard-header-content">
                     <div className="logo">
@@ -125,10 +162,53 @@ const Dashboard = () => {
                     </div>
                     
                     <div className="user-menu">
-                        <button className="notification-btn" onClick={() => navigate('/notifications')}>
-                            🔔
-                            <span className="notification-badge">৩</span>
-                        </button>
+                        <div className="notification-dropdown">
+                            <button 
+                                className="notification-btn"
+                                onClick={() => setShowNotifications(!showNotifications)}
+                            >
+                                🔔
+                                {unreadCount > 0 && (
+                                    <span className="notification-badge">{unreadCount}</span>
+                                )}
+                            </button>
+                            
+                            {showNotifications && (
+                                <div className="notification-popup">
+                                    <div className="notification-popup-header">
+                                        <span>নোটিফিকেশন</span>
+                                        <button onClick={() => setShowNotifications(false)}>✕</button>
+                                    </div>
+                                    <div className="notification-popup-list">
+                                        {notifications.length === 0 ? (
+                                            <div className="no-notifications">কোনো নোটিফিকেশন নেই</div>
+                                        ) : (
+                                            notifications.map(notif => (
+                                                <div 
+                                                    key={notif.id}
+                                                    className={`notification-item ${!notif.is_read ? 'unread' : ''}`}
+                                                    onClick={() => {
+                                                        markNotificationAsRead(notif.id);
+                                                        if (notif.link) navigate(notif.link);
+                                                        setShowNotifications(false);
+                                                    }}
+                                                >
+                                                    <div className="notification-icon">{notif.icon || '🔔'}</div>
+                                                    <div className="notification-content">
+                                                        <div className="notification-title">{notif.title_bn || notif.title}</div>
+                                                        <div className="notification-message">{notif.message_bn || notif.message}</div>
+                                                        <div className="notification-time">{formatDate(notif.created_at)}</div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                    <div className="notification-popup-footer">
+                                        <button onClick={() => navigate('/notifications')}>সব নোটিফিকেশন দেখুন →</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         
                         <div className="user-profile" onClick={() => navigate('/profile')}>
                             <div className="user-info">
@@ -147,9 +227,7 @@ const Dashboard = () => {
                 </div>
             </header>
 
-            {/* Main Content */}
             <main className="dashboard-main">
-                {/* Welcome Banner */}
                 <div className="welcome-banner">
                     <div className="welcome-text">
                         <h3>{getGreeting()}!</h3>
@@ -161,7 +239,6 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Stats Grid */}
                 <div className="stats-grid">
                     <div className="stat-card" onClick={() => navigate('/assessment')} style={{ cursor: 'pointer' }}>
                         <div className="stat-header">
@@ -169,12 +246,8 @@ const Dashboard = () => {
                             <div className="stat-icon" style={{ background: '#f3e8ff' }}>🧠</div>
                         </div>
                         <div className="stat-value">{currentScore}%</div>
-                        <div className="stat-change positive">
-                            ↑ {stats?.improvement || '0%'} আগের থেকে
-                        </div>
-                        <div className="progress-bar">
-                            <div className="progress-fill" style={{ width: `${progressWidth}%` }}></div>
-                        </div>
+                        <div className="stat-change positive">↑ {stats?.improvement || '0%'} আগের থেকে</div>
+                        <div className="progress-bar"><div className="progress-fill" style={{ width: `${progressWidth}%` }}></div></div>
                     </div>
 
                     <div className="stat-card" onClick={() => navigate('/assessment/history')} style={{ cursor: 'pointer' }}>
@@ -205,42 +278,24 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Features Section */}
                 <div className="features-section">
-                    <div className="section-header">
-                        <h3 className="section-title">🌟 মেন্টাল সাথীর বিশেষ ফিচারসমূহ</h3>
-                    </div>
+                    <div className="section-header"><h3 className="section-title">🌟 মেন্টাল সাথীর বিশেষ ফিচারসমূহ</h3></div>
                     <div className="features-grid">
                         {features.map((feature, index) => (
-                            <div 
-                                key={index} 
-                                className="feature-item" 
-                                onClick={() => navigate(feature.route)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <div className="feature-icon" style={{ background: feature.color }}>
-                                    {feature.icon}
-                                </div>
-                                <div className="feature-text">
-                                    <h4>{feature.title}</h4>
-                                    <p>{feature.desc}</p>
-                                </div>
+                            <div key={index} className="feature-item" onClick={() => navigate(feature.route)} style={{ cursor: 'pointer' }}>
+                                <div className="feature-icon" style={{ background: feature.color }}>{feature.icon}</div>
+                                <div className="feature-text"><h4>{feature.title}</h4><p>{feature.desc}</p></div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Chart Section */}
                 <div className="chart-section">
                     <div className="chart-header">
                         <h3 className="chart-title">📈 আপনার মানসিক স্বাস্থ্যের অগ্রগতি</h3>
                         <div className="chart-tabs">
                             {['weekly', 'monthly', 'yearly'].map(tab => (
-                                <button
-                                    key={tab}
-                                    className={`chart-tab ${activeTab === tab ? 'active' : ''}`}
-                                    onClick={() => setActiveTab(tab)}
-                                >
+                                <button key={tab} className={`chart-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
                                     {tab === 'weekly' ? 'সাপ্তাহিক' : tab === 'monthly' ? 'মাসিক' : 'বার্ষিক'}
                                 </button>
                             ))}
@@ -253,10 +308,7 @@ const Dashboard = () => {
                                 const value = chartData.data[chartData.data.length - 7 + index] || 0;
                                 return (
                                     <div key={index} className="chart-bar-item">
-                                        <div 
-                                            className="chart-bar" 
-                                            style={{ height: `${Math.max(40, (value / 100) * 150)}px` }}
-                                        ></div>
+                                        <div className="chart-bar" style={{ height: `${Math.max(40, (value / 100) * 150)}px` }}></div>
                                         <div className="chart-label">{label}</div>
                                         <div className="chart-label" style={{ fontWeight: 'bold' }}>{value}%</div>
                                     </div>
@@ -266,24 +318,15 @@ const Dashboard = () => {
                     )}
                 </div>
 
-                {/* Recent Activities */}
                 <div className="activities-section">
                     <div className="section-header">
                         <h3 className="section-title">⏰ সাম্প্রতিক কার্যকলাপ</h3>
                         <button onClick={() => navigate('/activities')} className="view-all">সব দেখুন →</button>
                     </div>
-                    
                     <div className="activity-list">
-                        {activities?.activities?.map((activity, index) => (
-                            <div 
-                                key={index} 
-                                className="activity-item" 
-                                onClick={() => navigate(`/assessment/${activity.id}`)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <div className="activity-icon" style={{ background: `${activity.color}15` }}>
-                                    {activity.icon}
-                                </div>
+                        {activities?.activities?.slice(0, 4).map((activity, index) => (
+                            <div key={index} className="activity-item" style={{ cursor: 'pointer' }}>
+                                <div className="activity-icon" style={{ background: `${activity.color}15` }}>{activity.icon}</div>
                                 <div className="activity-content">
                                     <div className="activity-title">{activity.title}</div>
                                     <div className="activity-desc">{activity.description}</div>
@@ -295,35 +338,22 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Quick Actions */}
                 <div className="actions-grid">
-                    <div 
-                        className="action-card" 
-                        style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', cursor: 'pointer' }}
-                        onClick={() => navigate('/assessment')}
-                    >
+                    <div className="action-card" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', cursor: 'pointer' }} onClick={() => navigate('/assessment')}>
                         <div className="action-icon">🧠</div>
                         <h4 className="action-title">মানসিক স্বাস্থ্য পরীক্ষা</h4>
                         <p className="action-desc">আপনার মানসিক অবস্থার দ্রুত বিশ্লেষণ পান</p>
                         <button className="action-btn">শুরু করুন →</button>
                     </div>
                     
-                    <div 
-                        className="action-card" 
-                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)', cursor: 'pointer' }}
-                        onClick={() => navigate('/meditation')}
-                    >
+                    <div className="action-card" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', cursor: 'pointer' }} onClick={() => navigate('/meditation')}>
                         <div className="action-icon">🧘</div>
                         <h4 className="action-title">মেডিটেশন সেশন</h4>
                         <p className="action-desc">১০ মিনিটের গাইডেড মেডিটেশন</p>
                         <button className="action-btn">শুরু করুন →</button>
                     </div>
                     
-                    <div 
-                        className="action-card" 
-                        style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', cursor: 'pointer' }}
-                        onClick={() => navigate('/consultants')}
-                    >
+                    <div className="action-card" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', cursor: 'pointer' }} onClick={() => navigate('/consultants')}>
                         <div className="action-icon">💬</div>
                         <h4 className="action-title">বিশেষজ্ঞের সাথে কথা বলুন</h4>
                         <p className="action-desc">প্রফেশনাল কাউন্সেলরের সাথে সংযোগ করুন</p>
