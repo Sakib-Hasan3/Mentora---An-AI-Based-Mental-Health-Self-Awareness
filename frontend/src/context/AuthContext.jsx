@@ -35,7 +35,7 @@ const parseStoredAuth = (storage) => {
     return null;
 };
 
-const readStoredAuth = () => {
+export const readStoredAuth = () => {
     if (typeof window === 'undefined') {
         return null;
     }
