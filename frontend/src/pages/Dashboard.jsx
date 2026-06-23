@@ -15,8 +15,7 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('weekly');
     const [showNotifications, setShowNotifications] = useState(false);
-    const [quickAssessmentResult, setQuickAssessmentResult] = useState(null);
-    const [showQuickAssessment, setShowQuickAssessment] = useState(false);
+    const [assessmentHistory, setAssessmentHistory] = useState([]);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -38,7 +37,7 @@ const Dashboard = () => {
         
         fetchDashboardData();
         fetchNotifications();
-        fetchQuickAssessmentHistory();
+        fetchAssessmentHistory();
     }, []);
 
     const fetchNotifications = async () => {
@@ -51,11 +50,11 @@ const Dashboard = () => {
         }
     };
 
-    const fetchQuickAssessmentHistory = async () => {
+    const fetchAssessmentHistory = async () => {
         try {
             const data = await api.get('/ml-assessment/history');
             if (data.history && data.history.length > 0) {
-                setQuickAssessmentResult(data.history[0]);
+                setAssessmentHistory(data.history);
             }
         } catch (error) {
             console.error('Failed to fetch assessment history:', error);
@@ -83,7 +82,8 @@ const Dashboard = () => {
         if (diff < 1) return 'এখনই';
         if (diff < 60) return `${diff} মিনিট আগে`;
         if (diff < 1440) return `${Math.floor(diff / 60)} ঘণ্টা আগে`;
-        return `${Math.floor(diff / 1440)} দিন আগে`;
+        if (diff < 43200) return `${Math.floor(diff / 1440)} দিন আগে`;
+        return d.toLocaleDateString('bn-BD');
     };
 
     const getGreeting = () => {
@@ -277,29 +277,6 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Quick Assessment Result Card (if exists) */}
-                {quickAssessmentResult && (
-                    <div className="quick-result-card">
-                        <div className="quick-result-header">
-                            <span className="quick-result-icon">📊</span>
-                            <span className="quick-result-title">আপনার সর্বশেষ দ্রুত মূল্যায়ন</span>
-                        </div>
-                        <div className="quick-result-body">
-                            <div className="quick-result-score">
-                                ঝুঁকি স্কোর: <strong>{Math.round(quickAssessmentResult.risk_score * 100)}%</strong>
-                            </div>
-                            <div className={`quick-result-status ${quickAssessmentResult.needs_treatment ? 'needs-treatment' : 'safe'}`}>
-                                {quickAssessmentResult.needs_treatment ? '⚠️ পরামর্শ প্রয়োজন' : '✅ সুস্থ অবস্থায় আছেন'}
-                            </div>
-                        </div>
-                        <div className="quick-result-footer">
-                            <button onClick={() => navigate('/quick-assessment')} className="quick-result-btn">
-                                বিস্তারিত দেখুন →
-                            </button>
-                        </div>
-                    </div>
-                )}
-
                 <div className="stats-grid">
                     <div className="stat-card" onClick={() => navigate('/assessment')} style={{ cursor: 'pointer' }}>
                         <div className="stat-header">
@@ -424,6 +401,50 @@ const Dashboard = () => {
                         <button className="action-btn">বুক করুন →</button>
                     </div>
                 </div>
+
+                {/* 📊 Assessment History Section */}
+                {assessmentHistory.length > 0 && (
+                    <div className="assessment-history-section">
+                        <div className="assessment-history-header">
+                            <h3 className="section-title">📜 আপনার অ্যাসেসমেন্ট ইতিহাস</h3>
+                            <button onClick={() => navigate('/quick-assessment')} className="view-all">
+                                সব দেখুন →
+                            </button>
+                        </div>
+                        <div className="assessment-history-list">
+                            {assessmentHistory.slice(0, 5).map((item, index) => (
+                                <div key={index} className="history-item">
+                                    <div className="history-info">
+                                        <span className="history-date">{formatDate(item.created_at)}</span>
+                                        <span className="history-score">স্কোর: {Math.round(item.risk_score * 100)}%</span>
+                                        <span className={`history-badge ${item.needs_treatment ? 'high-risk' : 'low-risk'}`}>
+                                            {item.needs_treatment ? '⚠️ পরামর্শ প্রয়োজন' : '✅ সুস্থ'}
+                                        </span>
+                                    </div>
+                                    <div className="history-source">
+                                        <span className="source-tag">
+                                            {item.recommendation_source === 'groq' ? '🤖 Groq AI' : 
+                                             item.recommendation_source === 'huggingface' ? '🤖 HuggingFace' : 
+                                             '📋 Fallback'}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* ❌ No history message */}
+                {assessmentHistory.length === 0 && (
+                    <div className="no-history-message">
+                        <span className="no-history-icon">📭</span>
+                        <h4>কোনো অ্যাসেসমেন্ট নেই</h4>
+                        <p>আপনি এখনো কোনো মানসিক স্বাস্থ্য পরীক্ষা দেননি।</p>
+                        <button onClick={() => navigate('/quick-assessment')} className="start-assessment-btn">
+                            🚀 প্রথম পরীক্ষা শুরু করুন
+                        </button>
+                    </div>
+                )}
             </main>
 
             <style>{`
@@ -463,56 +484,6 @@ const Dashboard = () => {
                     color: #10b981;
                     font-size: 1.5rem;
                 }
-                .quick-result-card {
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 16px;
-                    padding: 1rem;
-                    margin-bottom: 2rem;
-                }
-                .quick-result-header {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    margin-bottom: 0.5rem;
-                }
-                .quick-result-icon {
-                    font-size: 1.2rem;
-                }
-                .quick-result-title {
-                    color: #a8c0b5;
-                    font-size: 0.85rem;
-                }
-                .quick-result-body {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 0.5rem;
-                }
-                .quick-result-score {
-                    color: #eff8f3;
-                    font-size: 0.9rem;
-                }
-                .quick-result-status {
-                    font-size: 0.85rem;
-                    padding: 0.2rem 0.6rem;
-                    border-radius: 20px;
-                }
-                .quick-result-status.needs-treatment {
-                    background: rgba(239, 68, 68, 0.2);
-                    color: #ef4444;
-                }
-                .quick-result-status.safe {
-                    background: rgba(16, 185, 129, 0.2);
-                    color: #10b981;
-                }
-                .quick-result-btn {
-                    background: none;
-                    border: none;
-                    color: #10b981;
-                    cursor: pointer;
-                    font-size: 0.8rem;
-                }
                 .new-badge {
                     background: #ef4444;
                     color: white;
@@ -520,6 +491,145 @@ const Dashboard = () => {
                     padding: 0.1rem 0.3rem;
                     border-radius: 4px;
                     margin-left: 0.3rem;
+                }
+
+                /* Assessment History Section */
+                .assessment-history-section {
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 16px;
+                    padding: 1.5rem;
+                    margin-top: 2rem;
+                }
+                .assessment-history-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 1rem;
+                }
+                .section-title {
+                    color: #eff8f3;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                }
+                .view-all {
+                    background: none;
+                    border: none;
+                    color: #10b981;
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                }
+                .view-all:hover {
+                    text-decoration: underline;
+                }
+                .assessment-history-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.75rem;
+                }
+                .history-item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0.75rem 1rem;
+                    background: rgba(255, 255, 255, 0.02);
+                    border-radius: 12px;
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    transition: all 0.3s;
+                }
+                .history-item:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-color: rgba(16, 185, 129, 0.15);
+                }
+                .history-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    flex-wrap: wrap;
+                }
+                .history-date {
+                    color: #a8c0b5;
+                    font-size: 0.75rem;
+                }
+                .history-score {
+                    color: #eff8f3;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                }
+                .history-badge {
+                    font-size: 0.7rem;
+                    padding: 0.2rem 0.6rem;
+                    border-radius: 20px;
+                }
+                .history-badge.high-risk {
+                    background: rgba(239, 68, 68, 0.2);
+                    color: #ef4444;
+                }
+                .history-badge.low-risk {
+                    background: rgba(16, 185, 129, 0.2);
+                    color: #10b981;
+                }
+                .history-source .source-tag {
+                    font-size: 0.65rem;
+                    color: #6b7280;
+                    background: rgba(255, 255, 255, 0.05);
+                    padding: 0.15rem 0.5rem;
+                    border-radius: 12px;
+                }
+
+                /* No History Message */
+                .no-history-message {
+                    text-align: center;
+                    padding: 3rem 1rem;
+                    background: rgba(255, 255, 255, 0.02);
+                    border-radius: 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    margin-top: 2rem;
+                }
+                .no-history-icon {
+                    font-size: 3rem;
+                    display: block;
+                    margin-bottom: 1rem;
+                }
+                .no-history-message h4 {
+                    color: #eff8f3;
+                    font-size: 1.1rem;
+                    margin-bottom: 0.5rem;
+                }
+                .no-history-message p {
+                    color: #a8c0b5;
+                    font-size: 0.9rem;
+                    margin-bottom: 1.5rem;
+                }
+                .start-assessment-btn {
+                    background: linear-gradient(135deg, #10b981, #059669);
+                    border: none;
+                    padding: 0.6rem 1.5rem;
+                    border-radius: 30px;
+                    color: white;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+                .start-assessment-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+                }
+
+                @media (max-width: 768px) {
+                    .history-item {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0.5rem;
+                    }
+                    .history-info {
+                        flex-wrap: wrap;
+                    }
+                    .assessment-history-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0.5rem;
+                    }
                 }
             `}</style>
         </div>
