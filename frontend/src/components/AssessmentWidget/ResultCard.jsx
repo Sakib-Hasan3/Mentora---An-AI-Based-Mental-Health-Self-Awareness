@@ -16,11 +16,6 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
         return 'কম ঝুঁকি';
     };
 
-    const getRecommendationIcon = () => {
-        if (needsTreatment) return '⚠️';
-        return '💚';
-    };
-
     return (
         <div className="assessment-card">
             <div className="assessment-header">
@@ -29,7 +24,6 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
             </div>
 
             <div className="result-container">
-                {/* Risk Meter */}
                 <div className="risk-meter">
                     <div className="risk-meter-label">
                         <span>কম ঝুঁকি</span>
@@ -49,7 +43,6 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
                     </div>
                 </div>
 
-                {/* Risk Score Card */}
                 <div className="result-risk-card" style={{ borderColor: getRiskColor() }}>
                     <div className="result-risk-value" style={{ color: getRiskColor() }}>
                         {riskPercentage}%
@@ -57,12 +50,11 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
                     <div className="result-risk-level">
                         {getRiskText()}
                         <span className="risk-badge" style={{ background: getRiskColor() }}>
-                            {getRecommendationIcon()}
+                            {needsTreatment ? '⚠️' : '💚'}
                         </span>
                     </div>
                 </div>
 
-                {/* Recommendation */}
                 <div className="result-recommendation-card">
                     <div className="recommendation-header">
                         <span className="recommendation-icon">📋</span>
@@ -71,9 +63,17 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
                     <div className="recommendation-text">
                         {result.recommendation_bn || result.recommendation}
                     </div>
+                    {result.recommendation_source && (
+                        <div className="recommendation-source">
+                            <span className="source-badge">
+                                {result.recommendation_source === 'groq' ? '🤖 AI (Groq)' : 
+                                 result.recommendation_source === 'huggingface' ? '🤖 AI (HuggingFace)' : 
+                                 '📋 ফallback'}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
-                {/* Confidence & Accuracy */}
                 <div className="result-footer">
                     <div className="confidence-info">
                         <span className="confidence-icon">🎯</span>
@@ -95,7 +95,6 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="result-actions">
                     <button className="result-action-btn retake" onClick={onReset}>
                         🔄 আবার পরীক্ষা দিন
@@ -113,7 +112,7 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .result-container {
                     animation: fadeIn 0.5s ease;
                 }
@@ -196,6 +195,18 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
                     color: #a8c0b5;
                     line-height: 1.6;
                 }
+                .recommendation-source {
+                    margin-top: 0.5rem;
+                    text-align: right;
+                }
+                .source-badge {
+                    display: inline-block;
+                    padding: 0.2rem 0.6rem;
+                    background: rgba(16, 185, 129, 0.15);
+                    border-radius: 12px;
+                    font-size: 0.7rem;
+                    color: #10b981;
+                }
                 .result-footer {
                     display: flex;
                     justify-content: space-between;
@@ -222,9 +233,6 @@ const ResultCard = ({ result, onReset, onClose, isFloating }) => {
                     cursor: pointer;
                     color: #a8c0b5;
                     font-size: 0.75rem;
-                }
-                .feature-importance summary {
-                    list-style: none;
                 }
                 .feature-importance ul {
                     margin-top: 0.5rem;
