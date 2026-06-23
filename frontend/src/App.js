@@ -14,6 +14,7 @@ import ConsultantsPage from './pages/ConsultantsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import QuickAssessment from './pages/QuickAssessment';
 import FloatingWidget from './components/AssessmentWidget/FloatingWidget';
+import RAGChatbotWidget from './components/RAGChatbot/RAGChatbotWidget';
 import './styles/globals.css';
 import './styles/dashboard.css';
 import './styles/assessment.css';
@@ -24,6 +25,7 @@ import './styles/community.css';
 import './styles/consultant.css';
 import './styles/notifications.css';
 import './styles/assessment-widget.css';
+import './styles/rag-chatbot.css';
 
 const ComingSoon = ({ title }) => (
     <div className="dashboard-container">
@@ -85,19 +87,24 @@ function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
-                <AppWithFloatingWidget />
+                <AppWithWidgets />
             </AuthProvider>
         </BrowserRouter>
     );
 }
 
-function AppWithFloatingWidget() {
+function AppWithWidgets() {
     const { user } = useAuth();
     
     return (
         <>
             <AppRoutes />
-            {user && <FloatingWidget />}
+            {user && (
+                <>
+                    <FloatingWidget />
+                    <RAGChatbotWidget />
+                </>
+            )}
         </>
     );
 }
