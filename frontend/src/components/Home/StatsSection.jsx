@@ -1,30 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
 const stats = [
-    {
-        number: 50000,
-        label: 'ট্র্যাক করা সেশন',
-        icon: '👥',
-        suffix: '+'
-    },
-    {
-        number: 98,
-        label: 'সন্তুষ্টির হার',
-        icon: '⭐',
-        suffix: '%'
-    },
-    {
-        number: 150,
-        label: 'কেয়ার বিশেষজ্ঞ',
-        icon: '🎓',
-        suffix: '+'
-    },
-    {
-        number: 24,
-        label: 'ঘণ্টা সহায়তা',
-        icon: '🕐',
-        suffix: '/7'
-    }
+    { number: 50000, label: 'সক্রিয় ইউজার', icon: '👥', suffix: '+' },
+    { number: 98, label: 'সন্তুষ্টির হার', icon: '⭐', suffix: '%' },
+    { number: 150, label: 'বিশেষজ্ঞ সাইকোলজিস্ট', icon: '🎓', suffix: '+' },
+    { number: 24, label: 'ঘন্টা সাপোর্ট', icon: '🕐', suffix: '/৭' }
 ];
 
 const Counter = ({ end, duration = 2000 }) => {
@@ -33,17 +13,11 @@ const Counter = ({ end, duration = 2000 }) => {
     useEffect(() => {
         let start = 0;
         const increment = end / (duration / 16);
-        
         const timer = setInterval(() => {
             start += increment;
-            if (start >= end) {
-                setCount(end);
-                clearInterval(timer);
-            } else {
-                setCount(Math.floor(start));
-            }
+            if (start >= end) { setCount(end); clearInterval(timer); } 
+            else { setCount(Math.floor(start)); }
         }, 16);
-
         return () => clearInterval(timer);
     }, [end, duration]);
 
@@ -53,29 +27,16 @@ const Counter = ({ end, duration = 2000 }) => {
 const StatsSection = () => {
     return (
         <section className="stats-section">
-            <div className="container">
-                <div className="stats-grid reveal">
-                    {stats.map((stat, index) => (
-                        <article key={index} className="stat-card">
-                            <div className="stat-icon">{stat.icon}</div>
-                            <div className="stat-value">
-                                <Counter end={stat.number} />
-                                {stat.suffix}
-                            </div>
-                            <div className="stat-label">{stat.label}</div>
-                        </article>
-                    ))}
-                </div>
-
-                <div className="social-proof reveal">
-                    <div className="avatar-stack">
-                        <span>🙂</span>
-                        <span>🙂</span>
-                        <span>🙂</span>
-                        <span>🙂</span>
+            <div className="stats-grid">
+                {stats.map((stat, index) => (
+                    <div key={index} className="stat-item fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                        <div className="stat-number">
+                            <Counter end={stat.number} />
+                            {stat.suffix}
+                        </div>
+                        <div className="stat-label">{stat.label}</div>
                     </div>
-                    <p>বাংলাদেশের ৫,০০০+ মানুষ মেন্টোরার সাথে আরও স্বাস্থ্যকর check-in অভ্যাস গড়ে তুলেছেন।</p>
-                </div>
+                ))}
             </div>
         </section>
     );

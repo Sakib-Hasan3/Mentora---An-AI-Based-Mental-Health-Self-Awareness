@@ -4,7 +4,14 @@ const AuthContext = createContext({});
 
 export const useAuth = () => useContext(AuthContext);
 
-const API_URL = 'http://localhost:8000/api';
+const getApiUrl = () => {
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        return `http://${hostname}:8000/api`;
+    }
+    return 'http://localhost:8000/api';
+};
+const API_URL = getApiUrl();
 const AUTH_STORAGE_KEY = 'mentora_auth';
 const LEGACY_TOKEN_KEY = 'token';
 const LEGACY_USER_KEY = 'user';
@@ -99,7 +106,9 @@ export const AuthProvider = ({ children }) => {
                 }
                 return { success: true };
             }
-            return { success: false, error: data.detail || data.message };
+            const errorDetail = data.detail || data.message || 'Unknown error';
+            const errorMsg = typeof errorDetail === 'string' ? errorDetail : Array.isArray(errorDetail) ? errorDetail.map(e => e.msg || JSON.stringify(e)).join(', ') : JSON.stringify(errorDetail);
+            return { success: false, error: errorMsg };
         } catch (error) {
             return { success: false, error: 'সার্ভারে সংযোগ করতে পারেনি' };
         }
@@ -119,7 +128,53 @@ export const AuthProvider = ({ children }) => {
                 setUser(data.user);
                 return { success: true };
             }
-            return { success: false, error: data.detail || data.message };
+            const errorDetail = data.detail || data.message || 'Unknown error';
+            const errorMsg = typeof errorDetail === 'string' ? errorDetail : Array.isArray(errorDetail) ? errorDetail.map(e => e.msg || JSON.stringify(e)).join(', ') : JSON.stringify(errorDetail);
+            return { success: false, error: errorMsg };
+        } catch (error) {
+            return { success: false, error: 'সার্ভারে সংযোগ করতে পারেনি' };
+        }
+    };
+
+    const loginWithOTP = async (phone, otp, rememberMe = true) => {
+        try {
+            const res = await fetch(`${API_URL}/auth/otp/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, otp })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                persistAuth({ token: data.token, user: data.user, rememberMe });
+                setToken(data.token);
+                setUser(data.user);
+                return { success: true };
+            }
+            const errorDetail = data.detail || data.message || 'Unknown error';
+            const errorMsg = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
+            return { success: false, error: errorMsg };
+        } catch (error) {
+            return { success: false, error: 'সার্ভারে সংযোগ করতে পারেনি' };
+        }
+    };
+
+    const loginWithGoogle = async (email, name, rememberMe = true) => {
+        try {
+            const res = await fetch(`${API_URL}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, name })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                persistAuth({ token: data.token, user: data.user, rememberMe });
+                setToken(data.token);
+                setUser(data.user);
+                return { success: true };
+            }
+            const errorDetail = data.detail || data.message || 'Unknown error';
+            const errorMsg = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
+            return { success: false, error: errorMsg };
         } catch (error) {
             return { success: false, error: 'সার্ভারে সংযোগ করতে পারেনি' };
         }
@@ -145,8 +200,20 @@ export const AuthProvider = ({ children }) => {
         });
     };
 
+    const updateUser = (updatedUser) => {
+        setUser(updatedUser);
+        const storedAuth = readStoredAuth();
+        if (storedAuth) {
+            persistAuth({
+                token: storedAuth.token,
+                user: updatedUser,
+                rememberMe: storedAuth.rememberMe
+            });
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, token, loading, signup, login, logout, authFetch }}>
+        <AuthContext.Provider value={{ user, token, loading, signup, login, logout, loginWithOTP, loginWithGoogle, authFetch, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

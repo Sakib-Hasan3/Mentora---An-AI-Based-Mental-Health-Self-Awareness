@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 import '../styles/progress.css';
 
 const ProgressPage = () => {
@@ -64,7 +65,8 @@ const ProgressPage = () => {
     const maxScore = 100;
 
     return (
-        <div className="progress-container">
+        <div className="progress-container" style={{ paddingTop: '70px' }}>
+            <Header />
             <div className="progress-header-bar">
                 <button onClick={() => navigate('/dashboard')} className="back-btn">
                     ← ড্যাশবোর্ড

@@ -2,58 +2,69 @@ import React from 'react';
 
 const features = [
     {
-        icon: '🤖',
-        title: 'AI-নির্দেশিত প্রতিফলন',
-        description: 'স্মার্ট প্রম্পট আর সহজ বিশ্লেষণ আপনাকে নিজের আবেগের ধরন দ্রুত বুঝতে সাহায্য করে।'
+        icon: '🧠',
+        title: 'এআই-চালিত বিশ্লেষণ',
+        desc: 'অত্যাধুনিক এআই মডেল যা ৯৫% নির্ভুলতায় মানসিক অবস্থা শনাক্ত করে',
+        color: '#10b981'
     },
     {
         icon: '🔒',
-        title: 'ডিফল্টভাবেই গোপনীয়তা',
-        description: 'এনক্রিপ্টেড নোট, নিরাপদ স্টোরেজ, আর বিশ্বাসভিত্তিক অভিজ্ঞতা প্রতিটি সেশনে।'
+        title: '১০০% গোপনীয়',
+        desc: 'আপনার তথ্য সম্পূর্ণ নিরাপদ। কেউ দেখতে পাবে না, শেয়ার করা হবে না',
+        color: '#8b5cf6'
     },
     {
         icon: '💬',
-        title: 'সদা-সচল সহায়তা',
-        description: 'আপনি যখন সবচেয়ে বেশি ভরসা চান, তখনও কথা বলার মতো একটি সহায়তা স্তর সবসময় প্রস্তুত।'
+        title: '২৪/৭ সাপোর্ট',
+        desc: 'যেকোনো সময়, যেকোনো জায়গা থেকে আমাদের সেবা নিতে পারবেন',
+        color: '#3b82f6'
     },
     {
         icon: '📊',
-        title: 'দৈনিক অভ্যাস ট্র্যাকিং',
-        description: 'মুড, ঘুম, আর mindfulness এক জায়গায় দেখে আপনি নিজের রুটিন সহজে বুঝতে পারেন।'
+        title: 'প্রতিদিনের ট্র্যাকিং',
+        desc: 'নিয়মিত আপনার মানসিক স্বাস্থ্যের উন্নতি পর্যবেক্ষণ করুন',
+        color: '#f59e0b'
     },
     {
         icon: '👥',
-        title: 'পরিবার ও কমিউনিটি সাপোর্ট',
-        description: 'সহযোগিতামূলক সার্কেল তৈরি করুন, যা হইচই না করে বরং নিরাপদ আর সহানুভূতিশীল থাকে।'
+        title: 'কমিউনিটি সাপোর্ট',
+        desc: 'একই অভিজ্ঞতা সম্পন্ন মানুষদের সাথে সংযোগ স্থাপন করুন',
+        color: '#ec4899'
     },
     {
         icon: '📱',
-        title: 'মোবাইল-প্রথম অভিজ্ঞতা',
-        description: 'ফোন, ট্যাব, আর ডেস্কটপে একইভাবে দ্রুত, পরিষ্কার, আর স্বাচ্ছন্দ্যময় ইন্টারফেস।'
+        title: 'মোবাইল ফ্রেন্ডলি',
+        desc: 'যেকোনো ডিভাইস থেকে সহজেই ব্যবহার করতে পারবেন',
+        color: '#14b8a6'
     }
 ];
 
 const FeaturesSection = () => {
     return (
-        <section className="content-section" id="features">
-            <div className="container">
-                <div className="section-heading reveal">
-                    <span className="section-kicker">কেন মেন্টোরা</span>
-                    <h2>এক জায়গায় মানসিক যত্ন, AI insight, আর পরিষ্কার SaaS অভিজ্ঞতা</h2>
-                    <p>
-                        আমরা প্ল্যাটফর্মটি এমনভাবে বানিয়েছি যাতে পরিষ্কার বোঝা যায়, ভরসা তৈরি হয়, আর ব্যবহার করতে আলাদা কোনো ঝামেলা না থাকে।
-                    </p>
-                </div>
-
-                <div className="feature-grid">
-                    {features.map((feature, index) => (
-                        <article key={index} className="feature-card reveal">
-                            <div className="feature-icon">{feature.icon}</div>
-                            <h3>{feature.title}</h3>
-                            <p>{feature.description}</p>
-                        </article>
-                    ))}
-                </div>
+        <section className="features-section">
+            <div className="section-header">
+                <span className="section-tag">✦ ফিচারসমূহ</span>
+                <h2 className="section-title">
+                    কেন বেছে নেবেন <span style={{ color: '#10b981' }}>মেন্টাল সাথী</span>?
+                </h2>
+                <p className="section-subtitle">
+                    সহজ, নিরাপদ ও কার্যকর ফিচার যা আপনার মানসিক স্বাস্থ্যের যত্ন নেবে
+                </p>
+            </div>
+            
+            <div className="features-grid">
+                {features.map((feature, index) => (
+                    <div key={index} className="feature-card fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                        <div className="feature-icon-wrapper" style={{ background: `${feature.color}15` }}>
+                            {feature.icon}
+                        </div>
+                        <h3 className="feature-title">{feature.title}</h3>
+                        <p className="feature-desc">{feature.desc}</p>
+                        <a href="#" className="feature-link">
+                            আরও জানুন →
+                        </a>
+                    </div>
+                ))}
             </div>
         </section>
     );

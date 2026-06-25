@@ -1,4 +1,5 @@
 from datetime import datetime
+from bson import ObjectId
 from core.database import db
 from core.security import hash_password, verify_password, create_token
 from auth.schemas.auth import SignupRequest, LoginRequest
@@ -30,6 +31,7 @@ class AuthService:
             "email": user_data.email.lower(),
             "hashed_password": hashed,
             "is_active": True,
+            "user_type": "free",
             "created_at": datetime.utcnow()
         }
 
@@ -45,7 +47,9 @@ class AuthService:
                 "id": str(result.inserted_id),
                 "name": user_data.name,
                 "email": user_data.email,
-                "is_active": True
+                "is_active": True,
+                "user_type": "free",
+                "is_admin": False
             },
             "token": token
         }
@@ -80,7 +84,19 @@ class AuthService:
                 "id": str(user["_id"]),
                 "name": user["name"],
                 "email": user["email"],
-                "is_active": user.get("is_active", True)
+                "is_active": user.get("is_active", True),
+                "user_type": user.get("user_type", "free"),
+                "is_admin": user.get("is_admin", False)
             },
             "token": token
         }
+
+    @staticmethod
+    async def upgrade_user(user_id: str):
+        result = await db.get_collection(USER_COLLECTION).update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"user_type": "paid"}}
+        )
+        if result.modified_count:
+            return {"success": True, "message": "User upgraded successfully"}
+        return {"success": False, "message": "User not found or already upgraded"}

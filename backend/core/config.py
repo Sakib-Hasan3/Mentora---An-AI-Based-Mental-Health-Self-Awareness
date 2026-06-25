@@ -18,6 +18,15 @@ class Settings(BaseSettings):
     # API Keys
     GROQ_API_KEY: str = ""
     HF_API_KEY: str = ""
+    DEEPSEEK_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+    
+    # SSLCommerz Configuration
+    SSLCOMMERZ_STORE_ID: str = "mentora667be8f60f6db"
+    SSLCOMMERZ_STORE_PASSWD: str = "mentora667be8f60f6db@ssl"
+    SSLCOMMERZ_IS_SANDBOX: bool = True
+    BACKEND_URL: str = "http://localhost:8000"
+    FRONTEND_URL: str = "http://localhost:3000"
     
     class Config:
         env_file = ".env"

@@ -2,142 +2,65 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 
 const SupportPage = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState([
+        {
+            role: 'assistant',
+            content: 'আস্সালামু আলাইকুম! আমি Mentora AI সহায়ক। আমি মানসিক স্বাস্থ্য বিষয়ে আপনাকে সাহায্য করতে এখানে আছি। আপনি কি নিয়ে কথা বলতে চান?',
+            time: new Date()
+        }
+    ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
-    const [sessions, setSessions] = useState([]);
-    const [currentSession, setCurrentSession] = useState(null);
     const [typing, setTyping] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [fileType, setFileType] = useState(null);
+    const [sessionId, setSessionId] = useState(null);
+    const [charCount, setCharCount] = useState(0);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
-    const fileInputRef = useRef(null);
-
-    useEffect(() => {
-        fetchSessions();
-        scrollToBottom();
-    }, []);
+    const MAX_CHARS = 500;
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
-    const fetchSessions = async () => {
-        try {
-            const data = await api.get('/chatbot/sessions');
-            setSessions(data.sessions);
-            if (data.sessions.length > 0) {
-                loadSession(data.sessions[0].session_id);
-            }
-        } catch (error) {
-            console.error('Failed to fetch sessions:', error);
-        }
-    };
-
-    const loadSession = async (sessionId) => {
-        setCurrentSession(sessionId);
-        try {
-            const data = await api.get(`/chatbot/history/${sessionId}`);
-            setMessages(data.messages);
-        } catch (error) {
-            console.error('Failed to load session:', error);
-        }
-    };
-
-    const sendMultimodalQuery = async (inputType, content, query) => {
-        const formData = new FormData();
-        formData.append('input_type', inputType);
-        
-        if (inputType === 'text') {
-            formData.append('text', content);
-            formData.append('query', content);
-        } else if (inputType === 'image') {
-            formData.append('image', content);
-            formData.append('query', query || 'এই ছবিতে কি আছে?');
-        } else if (inputType === 'pdf') {
-            formData.append('pdf', content);
-            formData.append('query', query || 'এই ডকুমেন্টে কি লেখা আছে?');
-        }
-        
-        const token = localStorage.getItem('token');
-        
-        const response = await fetch('http://localhost:8000/api/multimodal/chat', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
-        });
-        
-        return response.json();
-    };
-
     const sendMessage = async () => {
-        if ((!input.trim() && !selectedFile) || loading) return;
+        const trimmed = input.trim();
+        if (!trimmed || loading) return;
 
-        if (input.trim()) {
-            const userMessage = { role: 'user', content: input, type: 'text' };
-            setMessages(prev => [...prev, userMessage]);
-        }
-        
-        if (selectedFile) {
-            const fileUrl = URL.createObjectURL(selectedFile);
-            const userMessage = { 
-                role: 'user', 
-                content: `[${fileType === 'image' ? '🖼️ ছবি' : '📄 PDF'}] ${selectedFile.name}`,
-                type: fileType,
-                fileUrl: fileUrl,
-                fileName: selectedFile.name
-            };
-            setMessages(prev => [...prev, userMessage]);
-        }
-        
-        const currentInput = input;
-        const currentFile = selectedFile;
-        const currentFileType = fileType;
-        
+        const userMessage = { role: 'user', content: trimmed, time: new Date() };
+        setMessages(prev => [...prev, userMessage]);
         setInput('');
-        setSelectedFile(null);
-        setFileType(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        setCharCount(0);
         setLoading(true);
         setTyping(true);
 
         try {
-            let result;
-            
-            if (currentFile) {
-                result = await sendMultimodalQuery(currentFileType, currentFile, currentInput);
-            } else {
-                const data = await api.post('/chatbot/chat', { 
-                    message: currentInput, 
-                    session_id: currentSession 
-                });
-                result = { response: data.message };
-            }
-            
-            const aiMessage = { 
-                role: 'assistant', 
-                content: result.response || result.message || "আমি আপনার কথা শুনছি। 💚",
-                type: 'text'
+            // Free users: /chatbot/chat uses Groq API
+            const data = await api.post('/chatbot/chat', {
+                message: trimmed,
+                session_id: sessionId
+            });
+
+            const aiMessage = {
+                role: 'assistant',
+                content: data.message,
+                time: new Date(),
+                provider: 'groq'
             };
             setMessages(prev => [...prev, aiMessage]);
-            
-            if (!currentFile && result.session_id) {
-                setCurrentSession(result.session_id);
-                fetchSessions();
-            }
+            if (data.session_id) setSessionId(data.session_id);
+
         } catch (error) {
-            console.error('Failed to send message:', error);
-            setMessages(prev => [...prev, { 
-                role: 'assistant', 
-                content: 'দুঃখিত, সার্ভারে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।',
-                type: 'text'
+            console.error('Chat error:', error);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'দুঃখিত, এই মুহূর্তে সংযোগ করতে পারছি না। অনুগ্রহ করে কিছুক্ষণ পরে আবার চেষ্টা করুন।',
+                time: new Date(),
+                isError: true
             }]);
         } finally {
             setLoading(false);
@@ -152,191 +75,404 @@ const SupportPage = () => {
         }
     };
 
-    const handleFileSelect = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        if (file.type.startsWith('image/')) {
-            setFileType('image');
-            setSelectedFile(file);
-        } else if (file.type === 'application/pdf') {
-            setFileType('pdf');
-            setSelectedFile(file);
-        } else {
-            alert('শুধু ইমেজ (JPG, PNG) অথবা PDF ফাইল আপলোড করতে পারেন');
-            e.target.value = '';
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        if (val.length <= MAX_CHARS) {
+            setInput(val);
+            setCharCount(val.length);
         }
-    };
-
-    const removeFile = () => {
-        setSelectedFile(null);
-        setFileType(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-    };
-
-    const startNewChat = () => {
-        setMessages([]);
-        setCurrentSession(null);
-        setSelectedFile(null);
-        setFileType(null);
-        inputRef.current?.focus();
     };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const quickQuestions = [
-        "আমি অনেক উদ্বিগ্ন বোধ করছি, কি করা উচিত?",
-        "স্ট্রেস কমানোর উপায় কি?",
-        "ঘুমানোর আগে কি করা ভালো?",
-        "আমি একা অনুভব করছি, সাহায্য দরকার",
-        "Ami stress kivabe komate pari?",
-        "Mon kharap lagche ki korbo?"
+    const clearChat = () => {
+        setMessages([{
+            role: 'assistant',
+            content: 'নতুন কথোপকথন শুরু হলো। আমি কীভাবে আপনাকে সাহায্য করতে পারি?',
+            time: new Date()
+        }]);
+        setSessionId(null);
+    };
+
+    const formatTime = (date) => {
+        if (!date) return '';
+        const d = new Date(date);
+        return d.toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const quickTopics = [
+        { icon: '😔', text: 'ডিপ্রেশন সম্পর্কে জানতে চাই' },
+        { icon: '😰', text: 'উদ্বেগ কমানোর উপায়' },
+        { icon: '😴', text: 'ঘুমের সমস্যা নিয়ে কথা বলতে চাই' },
+        { icon: '💪', text: 'মানসিক শক্তি বাড়ানোর টিপস' },
+        { icon: '🧘', text: 'স্ট্রেস ম্যানেজমেন্ট পরামর্শ' },
+        { icon: '❤️', text: 'সম্পর্কের সমস্যা নিয়ে কথা বলতে চাই' }
     ];
 
     return (
-        <div className="support-container">
-            <div className="support-header">
-                <button onClick={() => navigate('/dashboard')} className="back-btn">
-                    ← ড্যাশবোর্ড
-                </button>
-                <h1>💬 ২৪/৭ মাল্টিমোডাল চ্যাটবট</h1>
-                <button onClick={startNewChat} className="new-chat-btn">+ নতুন চ্যাট</button>
-            </div>
-
-            <div className="chat-layout">
-                <div className="chat-sidebar">
-                    <h3>চ্যাট ইতিহাস</h3>
-                    <div className="session-list">
-                        {sessions.map(session => (
-                            <div 
-                                key={session.session_id}
-                                className={`session-item ${currentSession === session.session_id ? 'active' : ''}`}
-                                onClick={() => loadSession(session.session_id)}
-                            >
-                                <div className="session-icon">💬</div>
-                                <div className="session-info">
-                                    <div className="session-preview">{session.last_message}</div>
-                                    <div className="session-time">{new Date(session.last_updated).toLocaleDateString('bn')}</div>
-                                </div>
-                            </div>
-                        ))}
-                        {sessions.length === 0 && (
-                            <div className="no-sessions">কোনো চ্যাট নেই</div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="chat-main">
-                    <div className="chat-messages">
-                        {messages.length === 0 && (
-                            <div className="welcome-message">
-                                <div className="welcome-icon">🧠</div>
-                                <h2>স্বাগতম!</h2>
-                                <p>আমি মেন্টাল সাথীর মাল্টিমোডাল চ্যাটবট। আমি আপনাকে সাহায্য করতে পারি:</p>
-                                <ul style={{ textAlign: 'left', maxWidth: '400px', margin: '20px auto', color: '#a8c0b5' }}>
-                                    <li>📝 টেক্সট প্রশ্নের উত্তর দিতে</li>
-                                    <li>🖼️ ছবি আপলোড করে সেটি বিশ্লেষণ করতে</li>
-                                    <li>📄 PDF ডকুমেন্ট পড়ে উত্তর দিতে</li>
-                                    <li>🧠 মানসিক স্বাস্থ্য বিষয়ে পরামর্শ দিতে</li>
-                                </ul>
-                                <div className="quick-questions">
-                                    <h4>দ্রুত প্রশ্ন:</h4>
-                                    <div className="quick-buttons">
-                                        {quickQuestions.map((q, idx) => (
-                                            <button key={idx} onClick={() => setInput(q)}>
-                                                {q}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {messages.map((msg, idx) => (
-                            <div key={idx} className={`message ${msg.role === 'user' ? 'user-message' : 'bot-message'}`}>
-                                <div className="message-avatar">
-                                    {msg.role === 'user' ? user?.name?.charAt(0) || 'ই' : '🤖'}
-                                </div>
-                                <div className="message-content">
-                                    {msg.type === 'image' && msg.fileUrl && (
-                                        <div className="message-file">
-                                            <img src={msg.fileUrl} alt={msg.fileName} style={{ maxWidth: '200px', borderRadius: '10px', marginBottom: '8px' }} />
-                                            <div className="message-filename">{msg.fileName}</div>
-                                        </div>
-                                    )}
-                                    {msg.type === 'pdf' && (
-                                        <div className="message-file">
-                                            <div style={{ fontSize: '30px' }}>📄</div>
-                                            <div className="message-filename">{msg.fileName}</div>
-                                        </div>
-                                    )}
-                                    <div className="message-text">{msg.content}</div>
-                                    <div className="message-time">
-                                        {msg.created_at ? new Date(msg.created_at).toLocaleTimeString('bn') : new Date().toLocaleTimeString('bn')}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                        
-                        {typing && (
-                            <div className="message bot-message">
-                                <div className="message-avatar">🤖</div>
-                                <div className="message-content">
-                                    <div className="typing-indicator">
-                                        <span></span><span></span><span></span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    <div className="chat-input-area">
-                        <div style={{ width: '100%' }}>
-                            {selectedFile && (
-                                <div className="selected-file">
-                                    <span>{fileType === 'image' ? '🖼️' : '📄'} {selectedFile.name}</span>
-                                    <button onClick={removeFile} className="remove-file">✕</button>
-                                </div>
-                            )}
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-                                <button 
-                                    onClick={() => fileInputRef.current?.click()} 
-                                    className="attach-btn"
-                                    title="ছবি বা PDF আপলোড করুন"
-                                >
-                                    📎
-                                </button>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*,application/pdf"
-                                    onChange={handleFileSelect}
-                                    style={{ display: 'none' }}
-                                />
-                                <textarea
-                                    ref={inputRef}
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    placeholder="বাংলা বা ইংরেজিতে আপনার প্রশ্ন লিখুন... অথবা ছবি/PDF আপলোড করুন"
-                                    rows="2"
-                                    disabled={loading}
-                                    style={{ flex: 1 }}
-                                />
-                                <button onClick={sendMessage} disabled={loading || (!input.trim() && !selectedFile)}>
-                                    {loading ? '⏳' : '📤'}
-                                </button>
+        <div style={{...styles.container, paddingTop: '70px'}}>
+            <Header />
+            {/* Header */}
+            <div style={styles.header}>
+                <div style={styles.headerLeft}>
+                    <button onClick={() => navigate('/dashboard')} style={styles.backBtn}>
+                        ← ড্যাশবোর্ড
+                    </button>
+                    <div style={styles.headerInfo}>
+                        <div style={styles.aiAvatar}>🤖</div>
+                        <div>
+                            <h2 style={styles.headerTitle}>২৪/৭ সাপোর্ট চ্যাট</h2>
+                            <div style={styles.headerSub}>
+                                <span style={styles.onlineDot}></span>
+                                <span style={styles.onlineText}>সর্বদা অনলাইন • Groq AI</span>
+                                <span style={styles.freeBadge}>🆓 বিনামূল্যে</span>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div style={styles.headerRight}>
+                    <button onClick={() => navigate('/pricing')} style={styles.upgradeBtn}>
+                        👑 আপগ্রেড
+                    </button>
+                    <button onClick={clearChat} style={styles.newChatBtn}>
+                        + নতুন চ্যাট
+                    </button>
+                </div>
             </div>
+
+            {/* Info Banner */}
+            <div style={styles.infoBanner}>
+                <span style={styles.infoIcon}>ℹ️</span>
+                <span style={styles.infoText}>
+                    এই চ্যাট Groq AI ব্যবহার করে। পেশাদার চিকিৎসার বিকল্প নয়।
+                    <button onClick={() => navigate('/consultants')} style={styles.infoLink}> কনসালট্যান্ট বুক করুন →</button>
+                </span>
+                <div style={styles.ragPromo}>
+                    🧠 RAG Chatbot চাই?
+                    <button onClick={() => navigate('/pricing')} style={styles.ragPromoBtn}> আপগ্রেড করুন</button>
+                </div>
+            </div>
+
+            <div style={styles.chatWrapper}>
+                {/* Quick Topics (shown when few messages) */}
+                {messages.length <= 1 && (
+                    <div style={styles.quickTopics}>
+                        <p style={styles.quickTopicsTitle}>💬 দ্রুত বিষয় বেছে নিন:</p>
+                        <div style={styles.quickGrid}>
+                            {quickTopics.map((topic, idx) => (
+                                <button
+                                    key={idx}
+                                    style={styles.quickBtn}
+                                    onClick={() => { setInput(topic.text); inputRef.current?.focus(); }}
+                                >
+                                    <span style={styles.quickIcon}>{topic.icon}</span>
+                                    <span style={styles.quickText}>{topic.text}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Messages */}
+                <div style={styles.messages}>
+                    {messages.map((msg, idx) => (
+                        <div key={idx} style={{
+                            ...styles.messageRow,
+                            ...(msg.role === 'user' ? styles.userRow : styles.botRow)
+                        }}>
+                            {msg.role === 'assistant' && (
+                                <div style={styles.botAvatar}>🤖</div>
+                            )}
+                            <div style={{
+                                ...styles.bubble,
+                                ...(msg.role === 'user' ? styles.userBubble : styles.botBubble),
+                                ...(msg.isError ? styles.errorBubble : {})
+                            }}>
+                                <p style={styles.bubbleText}>{msg.content}</p>
+                                <div style={styles.bubbleMeta}>
+                                    <span style={styles.timeText}>{formatTime(msg.time)}</span>
+                                    {msg.provider === 'groq' && (
+                                        <span style={styles.groqTag}>⚡ Groq</span>
+                                    )}
+                                </div>
+                            </div>
+                            {msg.role === 'user' && (
+                                <div style={styles.userAvatar}>
+                                    {user?.name?.charAt(0)?.toUpperCase() || 'আ'}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+
+                    {typing && (
+                        <div style={{ ...styles.messageRow, ...styles.botRow }}>
+                            <div style={styles.botAvatar}>🤖</div>
+                            <div style={{ ...styles.bubble, ...styles.botBubble }}>
+                                <div style={styles.typingIndicator}>
+                                    <span style={styles.typingDot}></span>
+                                    <span style={styles.typingDot}></span>
+                                    <span style={styles.typingDot}></span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div ref={messagesEndRef} />
+                </div>
+            </div>
+
+            {/* Input Area */}
+            <div style={styles.inputArea}>
+                <div style={styles.inputWrapper}>
+                    <textarea
+                        ref={inputRef}
+                        value={input}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                        placeholder="আপনার মনের কথা লিখুন... (Enter পাঠান, Shift+Enter নতুন লাইন)"
+                        style={styles.textarea}
+                        rows={2}
+                        disabled={loading}
+                    />
+                    <div style={styles.inputFooter}>
+                        <span style={{
+                            ...styles.charCount,
+                            color: charCount > MAX_CHARS * 0.9 ? '#ef4444' : '#6b7280'
+                        }}>
+                            {charCount}/{MAX_CHARS}
+                        </span>
+                        <button
+                            onClick={sendMessage}
+                            disabled={loading || !input.trim()}
+                            style={{
+                                ...styles.sendBtn,
+                                opacity: loading || !input.trim() ? 0.5 : 1
+                            }}
+                        >
+                            {loading ? '⏳' : '➤ পাঠান'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <style>{`
+                @keyframes bounce {
+                    0%, 80%, 100% { transform: translateY(0); }
+                    40% { transform: translateY(-6px); }
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
         </div>
     );
+};
+
+const styles = {
+    container: {
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0a0f1e 0%, #0d1b2a 50%, #0a1628 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: "'Hind Siliguri', 'Noto Sans Bengali', sans-serif",
+    },
+    header: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '1rem 1.5rem',
+        background: 'rgba(255,255,255,0.04)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+    },
+    headerLeft: { display: 'flex', alignItems: 'center', gap: '1rem' },
+    headerRight: { display: 'flex', gap: '0.75rem' },
+    backBtn: {
+        background: 'rgba(255,255,255,0.08)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        color: '#a8c0b5',
+        padding: '0.4rem 0.9rem',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '0.82rem',
+        transition: 'all 0.2s',
+    },
+    headerInfo: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
+    aiAvatar: {
+        width: '42px', height: '42px',
+        background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+        borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '1.3rem',
+        boxShadow: '0 0 15px rgba(139,92,246,0.4)',
+    },
+    headerTitle: { margin: 0, fontSize: '1rem', color: '#e2e8f0', fontWeight: 700 },
+    headerSub: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '2px' },
+    onlineDot: {
+        width: '8px', height: '8px',
+        background: '#10b981', borderRadius: '50%',
+        boxShadow: '0 0 6px #10b981',
+        animation: 'pulse 2s infinite',
+    },
+    onlineText: { fontSize: '0.72rem', color: '#6b8f7f' },
+    freeBadge: {
+        background: 'rgba(16,185,129,0.15)',
+        border: '1px solid rgba(16,185,129,0.3)',
+        color: '#10b981', fontSize: '0.65rem',
+        padding: '1px 6px', borderRadius: '10px',
+    },
+    upgradeBtn: {
+        background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        border: 'none', color: '#000',
+        padding: '0.4rem 0.9rem', borderRadius: '8px',
+        cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
+    },
+    newChatBtn: {
+        background: 'rgba(255,255,255,0.08)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        color: '#a8c0b5', padding: '0.4rem 0.9rem',
+        borderRadius: '8px', cursor: 'pointer', fontSize: '0.82rem',
+    },
+    infoBanner: {
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        padding: '0.6rem 1.5rem',
+        background: 'rgba(59,130,246,0.08)',
+        borderBottom: '1px solid rgba(59,130,246,0.15)',
+        flexWrap: 'wrap',
+    },
+    infoIcon: { fontSize: '0.85rem' },
+    infoText: { fontSize: '0.75rem', color: '#6b8f7f' },
+    infoLink: {
+        background: 'none', border: 'none', color: '#10b981',
+        cursor: 'pointer', textDecoration: 'underline', fontSize: '0.75rem',
+    },
+    ragPromo: {
+        marginLeft: 'auto', fontSize: '0.75rem', color: '#f59e0b',
+        display: 'flex', alignItems: 'center', gap: '0.3rem',
+    },
+    ragPromoBtn: {
+        background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)',
+        color: '#f59e0b', fontSize: '0.7rem', padding: '2px 8px',
+        borderRadius: '6px', cursor: 'pointer',
+    },
+    chatWrapper: {
+        flex: 1, display: 'flex', flexDirection: 'column',
+        maxWidth: '800px', width: '100%', margin: '0 auto',
+        padding: '1rem 1rem 0',
+        overflowY: 'auto',
+    },
+    quickTopics: {
+        background: 'rgba(255,255,255,0.04)',
+        borderRadius: '16px', padding: '1.2rem',
+        border: '1px solid rgba(255,255,255,0.07)',
+        marginBottom: '1rem',
+    },
+    quickTopicsTitle: { margin: '0 0 0.8rem', fontSize: '0.85rem', color: '#a8c0b5' },
+    quickGrid: {
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+        gap: '0.5rem',
+    },
+    quickBtn: {
+        background: 'rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '10px', padding: '0.6rem 0.8rem',
+        color: '#c4d8cf', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        transition: 'all 0.2s', textAlign: 'left',
+        fontSize: '0.82rem',
+    },
+    quickIcon: { fontSize: '1.1rem' },
+    quickText: { lineHeight: 1.3 },
+    messages: { display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '1rem' },
+    messageRow: { display: 'flex', gap: '0.75rem', animation: 'fadeIn 0.3s ease' },
+    userRow: { flexDirection: 'row-reverse' },
+    botRow: { flexDirection: 'row' },
+    botAvatar: {
+        width: '36px', height: '36px', minWidth: '36px',
+        background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+        borderRadius: '50%', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', fontSize: '1rem', alignSelf: 'flex-end',
+    },
+    userAvatar: {
+        width: '36px', height: '36px', minWidth: '36px',
+        background: 'linear-gradient(135deg, #10b981, #059669)',
+        borderRadius: '50%', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', fontSize: '0.9rem', fontWeight: 700,
+        color: '#fff', alignSelf: 'flex-end',
+    },
+    bubble: {
+        maxWidth: '70%', padding: '0.9rem 1.1rem',
+        borderRadius: '16px', lineHeight: 1.6,
+    },
+    userBubble: {
+        background: 'linear-gradient(135deg, #10b981, #059669)',
+        borderBottomRightRadius: '4px',
+    },
+    botBubble: {
+        background: 'rgba(255,255,255,0.08)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderBottomLeftRadius: '4px',
+    },
+    errorBubble: {
+        background: 'rgba(239,68,68,0.1)',
+        border: '1px solid rgba(239,68,68,0.2)',
+    },
+    bubbleText: { margin: 0, color: '#e2e8f0', fontSize: '0.9rem' },
+    bubbleMeta: {
+        display: 'flex', gap: '0.5rem', alignItems: 'center',
+        marginTop: '0.4rem',
+    },
+    timeText: { fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' },
+    groqTag: {
+        fontSize: '0.6rem', padding: '1px 5px',
+        background: 'rgba(16,185,129,0.15)',
+        border: '1px solid rgba(16,185,129,0.3)',
+        borderRadius: '8px', color: '#10b981',
+    },
+    typingIndicator: { display: 'flex', gap: '5px', padding: '4px 0' },
+    typingDot: {
+        width: '8px', height: '8px',
+        background: '#6b7280', borderRadius: '50%',
+        animation: 'bounce 1.4s infinite',
+    },
+    inputArea: {
+        position: 'sticky', bottom: 0,
+        background: 'rgba(10,15,30,0.95)',
+        backdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        padding: '1rem 1.5rem',
+    },
+    inputWrapper: {
+        maxWidth: '800px', margin: '0 auto',
+        background: 'rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: '16px', padding: '0.75rem 1rem',
+    },
+    textarea: {
+        width: '100%', background: 'transparent',
+        border: 'none', outline: 'none',
+        color: '#e2e8f0', fontSize: '0.9rem',
+        resize: 'none', fontFamily: 'inherit',
+        lineHeight: 1.5,
+    },
+    inputFooter: {
+        display: 'flex', justifyContent: 'space-between',
+        alignItems: 'center', marginTop: '0.5rem',
+    },
+    charCount: { fontSize: '0.7rem' },
+    sendBtn: {
+        background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+        border: 'none', color: '#fff',
+        padding: '0.5rem 1.2rem', borderRadius: '10px',
+        cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem',
+        transition: 'all 0.2s',
+    },
 };
 
 export default SupportPage;

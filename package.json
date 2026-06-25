@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "start": "npm --prefix frontend start",
+    "dev": "./run.sh",
     "install-frontend": "npm --prefix frontend install",
     "build-frontend": "npm --prefix frontend run build"
   },
   "dependencies": {
-    "react-router-dom": "^7.16.0"
+    "axios": "^1.18.1"
   }
 }

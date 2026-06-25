@@ -15,6 +15,7 @@ class UserModel:
             "email": email.strip().lower(),
             "hashed_password": hashed_password,
             "is_active": True,
+            "user_type": "free",  # "free" or "paid"
             "created_at": datetime.now(timezone.utc),
             "updated_at": datetime.now(timezone.utc),
         }
@@ -31,4 +32,5 @@ class UserModel:
             "name": user_document.get("name", ""),
             "email": user_document.get("email", ""),
             "is_active": user_document.get("is_active", True),
+            "user_type": user_document.get("user_type", "free"),
         }

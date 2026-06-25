@@ -14,11 +14,13 @@ from consultant import consultant_router
 from notifications import notifications_router
 import asyncio
 from datetime import datetime
-from scheduler import check_assessment_reminders, send_daily_meditation_reminder
+from scheduler import check_assessment_reminders, send_daily_meditation_reminder, check_appointment_reminders
 from ml_assessment import ml_assessment_router
 from ml_model import ml_assessment_router
 from rag_system import rag_router
-
+from cms import cms_router
+from payment import payment_router
+from wellness import wellness_router
 
 
 async def start_background_tasks():
@@ -33,6 +35,8 @@ async def start_background_tasks():
         # Send meditation reminder every day at 8 AM
         if now.hour == 8 and now.minute == 0:
             asyncio.create_task(send_daily_meditation_reminder())
+            # Send appointment reminder for today's bookings
+            asyncio.create_task(check_appointment_reminders())
         
         await asyncio.sleep(60)  # Check every minute
 
@@ -44,7 +48,7 @@ async def lifespan(app: FastAPI):
     asyncio.create_task(start_background_tasks())
     print(f"🚀 Server running on http://localhost:{settings.PORT}")
     print(f"📚 API Docs: http://localhost:{settings.PORT}/docs")
-    print(f"🔔 Notification scheduler started (8AM - Meditation, 10AM - Assessment Reminder)")
+    print(f"🔔 Notification scheduler started (8AM - Meditation + Appointment Reminder, 10AM - Assessment Reminder)")
     yield
     # Shutdown
     await db.disconnect()
@@ -77,8 +81,11 @@ app.include_router(community_router, prefix="/api")
 app.include_router(consultant_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
 app.include_router(ml_assessment_router, prefix="/api")
-app.include_router(ml_assessment_router, prefix="/api")
 app.include_router(rag_router, prefix="/api")
+app.include_router(cms_router, prefix="/api")
+app.include_router(payment_router, prefix="/api")
+app.include_router(wellness_router, prefix="/api")
+
 
 @app.get("/")
 def root():

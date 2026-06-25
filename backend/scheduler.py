@@ -31,3 +31,50 @@ async def send_daily_meditation_reminder():
     
     for user in users:
         await notification_service.notify_meditation_reminder(user_id=user["_id"])
+
+async def check_appointment_reminders():
+    """
+    Check bookings scheduled for today and send reminders to users.
+    Runs every morning (e.g. 8 AM). Matches booking date with today's date (YYYY-MM-DD).
+    """
+    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+
+    # Find all confirmed/pending bookings for today that haven't been reminded yet
+    bookings = await db.get_collection("bookings").find({
+        "date": today_str,
+        "status": {"$in": ["pending", "confirmed"]},
+        "reminder_sent": {"$ne": True}  # avoid double notification
+    }).to_list(length=200)
+
+    for booking in bookings:
+        user_id = booking.get("user_id")
+        time    = booking.get("time", "")
+        c_id    = booking.get("consultant_id")
+
+        if not user_id:
+            continue
+
+        # Fetch consultant name
+        consultant_name = "আপনার কনসালট্যান্ট"
+        if c_id:
+            try:
+                from bson import ObjectId
+                c = await db.get_collection("consultants").find_one({"_id": ObjectId(c_id)})
+                if c:
+                    consultant_name = c.get("name_bn") or c.get("name", consultant_name)
+            except Exception:
+                pass
+
+        await notification_service.notify_appointment_reminder(
+            user_id=user_id,
+            consultant_name=consultant_name,
+            date=today_str,
+            time=time
+        )
+
+        # Mark reminder as sent so we don't send again
+        await db.get_collection("bookings").update_one(
+            {"_id": booking["_id"]},
+            {"$set": {"reminder_sent": True}}
+        )
+

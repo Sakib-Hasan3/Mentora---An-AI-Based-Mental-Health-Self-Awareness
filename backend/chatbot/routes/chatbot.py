@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from auth.dependencies.auth import get_current_user
 from chatbot.services.ollama_service import ollama_service
+from chatbot.services.groq_service import groq_service
 from core.database import db
 from datetime import datetime
 from bson import ObjectId
@@ -24,6 +25,7 @@ async def chat(
     """Send a message to chatbot and get AI response"""
     
     user_id = current_user["id"]
+    user_type = current_user.get("user_type", "free")
     
     # Save user message to database
     chat_collection = db.get_collection("chat_sessions")
@@ -41,8 +43,11 @@ async def chat(
     # Get conversation history
     history = await get_conversation_history(user_id, request.session_id)
     
-    # Generate AI response
-    ai_response = await ollama_service.generate_response(request.message, history)
+    # Generate AI response based on user type
+    if user_type == "free":
+        ai_response = await groq_service.generate_response(request.message, history)
+    else: # paid user
+        ai_response = await ollama_service.generate_response(request.message, history)
     
     # Save AI response
     ai_message = {

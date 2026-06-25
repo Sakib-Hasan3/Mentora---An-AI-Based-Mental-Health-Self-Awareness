@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../hooks/useNotifications';
+import Header from '../components/Header';
 import '../styles/notifications.css';
 
 const NotificationsPage = () => {
@@ -71,7 +72,8 @@ const NotificationsPage = () => {
     };
 
     return (
-        <div className="notifications-container">
+        <div className="notifications-container" style={{ paddingTop: '70px' }}>
+            <Header />
             <div className="notifications-header">
                 <button onClick={() => navigate('/dashboard')} className="back-btn">
                     ← ড্যাশবোর্ড

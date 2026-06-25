@@ -1,57 +1,76 @@
 import React from 'react';
 
 const Footer = () => {
-    const currentYear = new Date().getFullYear();
+    const year = new Date().getFullYear();
 
     return (
-        <footer className="footer" id="footer">
-            <div className="container footer-grid">
-                <div>
-                    <div className="footer-brand">
-                        <span className="footer-mark">M</span>
-                        <div>
-                            <h3>Mentora</h3>
-                            <p>বাংলা AI মানসিক সুস্থতা সবার জন্য</p>
+        <footer style={{
+            padding: '4rem 2rem',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+            background: 'linear-gradient(180deg, #0E1E19 0%, #162420 40%, #202920 100%)'
+        }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '2rem',
+                    marginBottom: '3rem'
+                }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <span style={{ fontSize: '2rem' }}>🧠</span>
+                            <h3 style={{ color: '#eff8f3', fontSize: '1.2rem', fontWeight: '700' }}>মেন্টাল সাথী</h3>
+                        </div>
+                        <p style={{ color: '#a8c0b5', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                            আপনার মানসিক স্বাস্থ্যের যত্ন নেওয়ার জন্য বাংলা প্ল্যাটফর্ম।
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 style={{ color: '#eff8f3', fontWeight: '600', marginBottom: '1rem' }}>দ্রুত লিংক</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <li><a href="#" style={{ color: '#a8c0b5', textDecoration: 'none', transition: 'color 0.3s' }}>হোম</a></li>
+                            <li><a href="#" style={{ color: '#a8c0b5', textDecoration: 'none', transition: 'color 0.3s' }}>মানসিক স্বাস্থ্য পরীক্ষা</a></li>
+                            <li><a href="#" style={{ color: '#a8c0b5', textDecoration: 'none', transition: 'color 0.3s' }}>বিশেষজ্ঞদের তালিকা</a></li>
+                            <li><a href="#" style={{ color: '#a8c0b5', textDecoration: 'none', transition: 'color 0.3s' }}>ব্লগ</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 style={{ color: '#eff8f3', fontWeight: '600', marginBottom: '1rem' }}>সাপোর্ট</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <li><a href="#" style={{ color: '#a8c0b5', textDecoration: 'none', transition: 'color 0.3s' }}>হেল্প সেন্টার</a></li>
+                            <li><a href="#" style={{ color: '#a8c0b5', textDecoration: 'none', transition: 'color 0.3s' }}>প্রাইভেসি পলিসি</a></li>
+                            <li><a href="#" style={{ color: '#a8c0b5', textDecoration: 'none', transition: 'color 0.3s' }}>টার্মস এন্ড কন্ডিশন</a></li>
+                            <li><a href="#" style={{ color: '#a8c0b5', textDecoration: 'none', transition: 'color 0.3s' }}>যোগাযোগ</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 style={{ color: '#eff8f3', fontWeight: '600', marginBottom: '1rem' }}>যোগাযোগ</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#a8c0b5', fontSize: '0.9rem' }}>
+                            <li>📧 support@mentora.com</li>
+                            <li>📞 ১৬২৬৩ (হেল্পলাইন)</li>
+                            <li>🇧🇩 বাংলাদেশ</li>
+                        </ul>
+                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                            <a href="#" style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a8c0b5', textDecoration: 'none', transition: 'all 0.3s' }}>📘</a>
+                            <a href="#" style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a8c0b5', textDecoration: 'none', transition: 'all 0.3s' }}>🐦</a>
+                            <a href="#" style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a8c0b5', textDecoration: 'none', transition: 'all 0.3s' }}>📸</a>
                         </div>
                     </div>
-                    <p className="footer-copy">
-                        মুড ট্র্যাকিং, নির্দেশিত self-awareness, আর privacy-first সহায়তার জন্য বানানো একটি পরিপাটি SaaS হোমপেজ।
-                    </p>
                 </div>
-
-                <div>
-                    <h4>পণ্য</h4>
-                    <ul>
-                        <li><a href="#features">ফিচার</a></li>
-                        <li><a href="#demo">ডেমো</a></li>
-                        <li><a href="#">মূল্যতালিকা</a></li>
-                        <li><a href="#">আপডেট লগ</a></li>
-                    </ul>
+                
+                <div style={{
+                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                    paddingTop: '1.5rem',
+                    textAlign: 'center',
+                    color: '#6b7280',
+                    fontSize: '0.85rem'
+                }}>
+                    <p>© {year} মেন্টাল সাথী। সব অধিকার সংরক্ষিত।</p>
+                    <p style={{ marginTop: '0.25rem' }}>💚 আপনার মানসিক স্বাস্থ্যই আমাদের প্রথম priority</p>
                 </div>
-
-                <div>
-                    <h4>সহায়তা</h4>
-                    <ul>
-                        <li><a href="#">সহায়তা কেন্দ্র</a></li>
-                        <li><a href="#">গোপনীয়তা</a></li>
-                        <li><a href="#">শর্তাবলি</a></li>
-                        <li><a href="#">যোগাযোগ</a></li>
-                    </ul>
-                </div>
-
-                <div>
-                    <h4>যোগাযোগ</h4>
-                    <ul>
-                        <li>support@mentora.app</li>
-                        <li>Dhaka, Bangladesh</li>
-                        <li>২৪/৭ প্রোডাক্ট সহায়তা</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div className="container footer-bottom">
-                <p>© {currentYear} Mentora. সর্বস্বত্ব সংরক্ষিত।</p>
-                <p>সচেতন ডিজিটাল সুস্থতার জন্য নির্মিত।</p>
             </div>
         </footer>
     );

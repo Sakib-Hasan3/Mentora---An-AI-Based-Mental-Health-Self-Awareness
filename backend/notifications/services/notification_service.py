@@ -114,6 +114,20 @@ class NotificationService:
         )
     
     @staticmethod
+    async def notify_appointment_reminder(user_id: str, consultant_name: str, date: str, time: str):
+        return await NotificationService.create_notification(
+            user_id=user_id,
+            title="Today's Appointment Reminder",
+            title_bn="আজকের অ্যাপয়েন্টমেন্ট রিমাইন্ডার",
+            message=f"Reminder: You have an appointment with {consultant_name} today at {time}.",
+            message_bn=f"স্মরণ করিয়ে দিচ্ছি: আজ {time} সময়ে {consultant_name} এর সাথে আপনার অ্যাপয়েন্টমেন্ট রয়েছে।",
+            notif_type="warning",
+            icon="🏥",
+            link="/consultants"
+        )
+
+    
+    @staticmethod
     async def notify_book_reminder(user_id: str, book_title: str):
         return await NotificationService.create_notification(
             user_id=user_id,
