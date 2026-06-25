@@ -9,3 +9,8 @@ __pycache__/
 *.log
 .vscode/
 .venv/
+node_modules/
+backend/chroma_db/
+.env
+*.pyc
+__pycache__/
