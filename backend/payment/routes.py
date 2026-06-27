@@ -49,6 +49,22 @@ async def initiate_payment(
     
     await db.get_collection(PAYMENT_COLLECTION).insert_one(payment_doc)
 
+    # ── MOCK MODE: bypass SSLCommerz entirely (dev/demo only) ──────────────
+    if settings.PAYMENT_MOCK_MODE:
+        # Immediately mark payment as successful
+        await db.get_collection(PAYMENT_COLLECTION).update_one(
+            {"tran_id": tran_id},
+            {"$set": {"status": "success", "payment_method": "MOCK", "updated_at": datetime.utcnow()}}
+        )
+        # Upgrade user to premium
+        await db.get_collection(USER_COLLECTION).update_one(
+            {"_id": ObjectId(current_user["id"])},
+            {"$set": {"user_type": "paid", "subscription": "premium"}}
+        )
+        mock_url = f"{settings.FRONTEND_URL}/payment/success?tran_id={tran_id}&mock=true"
+        return {"success": True, "gateway_url": mock_url, "tran_id": tran_id}
+    # ────────────────────────────────────────────────────────────────────────
+
     # Prepare SSLCommerz request parameters
     ssl_init_url = (
         "https://sandbox.sslcommerz.com/gwprocess/v4/api.php"
