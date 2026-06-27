@@ -1,0 +1,119 @@
+# ============================================================
+# Mentora — Production Docker Compose
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Requirements:
+#   - Copy backend/.env.example → backend/.env and fill values
+#   - Set ENV=production in backend/.env
+# ============================================================
+
+services:
+
+  # ─── MongoDB ────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: mentora-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-mentora_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:-change_this_strong_password}
+      MONGO_INITDB_DATABASE: ${DATABASE_NAME:-mentora_db}
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    networks:
+      - internal
+    # NOT exposed to host in production (only accessible internally)
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ─── Backend (FastAPI + Gunicorn) ────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile         # Uses the production multi-stage Dockerfile
+    container_name: mentora-backend
+    restart: always
+    depends_on:
+      mongo:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      ENV: production
+      MONGODB_URL: mongodb://${MONGO_ROOT_USER:-mentora_admin}:${MONGO_ROOT_PASS:-change_this_strong_password}@mongo:27017/${DATABASE_NAME:-mentora_db}?authSource=admin
+    networks:
+      - internal
+    # NOT exposed to host — Nginx is the only entry point
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
+
+  # ─── Frontend (Nginx serving React build) ────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod     # Multi-stage: build React → serve with Nginx
+    container_name: mentora-frontend
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - internal
+      - public
+
+  # ─── Nginx Reverse Proxy ─────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: mentora-nginx
+    restart: always
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"    # Uncomment after adding SSL certs
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/proxy_params:/etc/nginx/proxy_params:ro
+      - nginx_logs:/var/log/nginx
+      # SSL certificates (uncomment when ready):
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - internal
+      - public
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ─── Networks ────────────────────────────────────────────────────────────
+networks:
+  internal:
+    driver: bridge
+    internal: true     # No direct internet access for internal services
+  public:
+    driver: bridge
+
+# ─── Volumes ─────────────────────────────────────────────────────────────
+volumes:
+  mongo_data:
+    driver: local
+  mongo_config:
+    driver: local
+  nginx_logs:
+    driver: local
