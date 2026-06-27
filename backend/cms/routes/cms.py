@@ -152,3 +152,107 @@ async def get_categories(current_user: dict = Depends(get_current_user)):
         "success": True,
         "categories": [{"name": c["_id"], "count": c["count"]} for c in categories if c["_id"]]
     }
+
+# ─── Admin User Management Endpoints ────────────────────────────────────────
+
+USER_COLLECTION = "users"
+
+@router.get("/users")
+async def get_all_users(
+    limit: int = Query(100, ge=1, le=500),
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    users = await db.get_collection(USER_COLLECTION).find({}).sort("created_at", -1).limit(limit).to_list(length=limit)
+    
+    formatted_users = []
+    for u in users:
+        formatted_users.append({
+            "id": str(u["_id"]),
+            "name": u.get("name", "N/A"),
+            "email": u.get("email", "N/A"),
+            "phone": u.get("phone"),
+            "user_type": u.get("user_type", "free"),
+            "subscription": u.get("subscription"),
+            "is_admin": u.get("is_admin", False),
+            "is_active": u.get("is_active", True),
+            "created_at": u.get("created_at").isoformat() if u.get("created_at") else None
+        })
+        
+    return {"success": True, "users": formatted_users}
+
+@router.put("/users/{user_id}/upgrade")
+async def upgrade_user_admin(
+    user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    user = await db.get_collection(USER_COLLECTION).find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Toggle or force upgrade
+    new_type = "free" if user.get("user_type") == "paid" else "paid"
+    new_sub = None if new_type == "free" else "premium"
+    
+    await db.get_collection(USER_COLLECTION).update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"user_type": new_type, "subscription": new_sub}}
+    )
+    
+    return {
+        "success": True, 
+        "message": f"User upgraded/downgraded to {new_type}", 
+        "user_type": new_type,
+        "subscription": new_sub
+    }
+
+@router.put("/users/{user_id}/toggle-status")
+async def toggle_user_status(
+    user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    user = await db.get_collection(USER_COLLECTION).find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    new_status = not user.get("is_active", True)
+    
+    await db.get_collection(USER_COLLECTION).update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"is_active": new_status}}
+    )
+    
+    return {"success": True, "message": f"User status updated", "is_active": new_status}
+
+@router.put("/users/{user_id}/toggle-admin")
+async def toggle_user_admin(
+    user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if str(current_user["id"]) == user_id:
+        raise HTTPException(status_code=400, detail="You cannot modify your own admin status")
+        
+    user = await db.get_collection(USER_COLLECTION).find_one({"_id": ObjectId(user_id)})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    new_admin = not user.get("is_admin", False)
+    
+    await db.get_collection(USER_COLLECTION).update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"is_admin": new_admin}}
+    )
+    
+    return {"success": True, "message": f"User admin status updated", "is_admin": new_admin}
+
