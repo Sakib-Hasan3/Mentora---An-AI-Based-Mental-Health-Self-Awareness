@@ -25,7 +25,7 @@ class ConsultantResponse(BaseModel):
     image: str
 
 class BookingRequest(BaseModel):
-    consultant_id: str
+    consultant_id: Optional[str] = None  # Optional: already provided in URL path
     date: str
     time: str
     type: str = "online"

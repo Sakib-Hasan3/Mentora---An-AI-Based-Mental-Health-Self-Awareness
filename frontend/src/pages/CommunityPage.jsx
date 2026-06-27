@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import PostCard from '../components/Community/PostCard';
 import CreatePost from '../components/Community/CreatePost';
 import DivisionSelector from '../components/Community/DivisionSelector';
+import Header from '../components/Header';
 import '../styles/community.css';
 
 const CommunityPage = () => {
@@ -90,7 +91,8 @@ const CommunityPage = () => {
     }
 
     return (
-        <div className="community-container">
+        <div className="community-container" style={{ paddingTop: '70px' }}>
+            <Header />
             <div className="community-header">
                 <button onClick={() => navigate('/dashboard')} className="back-btn">
                     ← ড্যাশবোর্ড

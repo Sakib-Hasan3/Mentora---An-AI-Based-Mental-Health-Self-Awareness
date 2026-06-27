@@ -2,32 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 import '../styles/dashboard.css';
 
 const Dashboard = () => {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [chartData, setChartData] = useState(null);
     const [activities, setActivities] = useState(null);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('weekly');
-    const [showNotifications, setShowNotifications] = useState(false);
     const [assessmentHistory, setAssessmentHistory] = useState([]);
+    const [recentContent, setRecentContent] = useState([]);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [statsData, chartData, activitiesData] = await Promise.all([
+                const [statsData, chartData, activitiesData, cmsData] = await Promise.all([
                     api.get('/dashboard/stats'),
                     api.get('/dashboard/chart-data'),
-                    api.get('/dashboard/recent-activity')
+                    api.get('/dashboard/recent-activity'),
+                    api.get('/cms/content?limit=3')
                 ]);
                 setStats(statsData);
                 setChartData(chartData);
                 setActivities(activitiesData);
+                setRecentContent(cmsData.content || []);
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             } finally {
@@ -36,19 +37,8 @@ const Dashboard = () => {
         };
         
         fetchDashboardData();
-        fetchNotifications();
         fetchAssessmentHistory();
     }, []);
-
-    const fetchNotifications = async () => {
-        try {
-            const data = await api.get('/notifications/?limit=5');
-            setNotifications(data.notifications || []);
-            setUnreadCount(data.unread_count || 0);
-        } catch (error) {
-            console.error('Failed to fetch notifications:', error);
-        }
-    };
 
     const fetchAssessmentHistory = async () => {
         try {
@@ -58,18 +48,6 @@ const Dashboard = () => {
             }
         } catch (error) {
             console.error('Failed to fetch assessment history:', error);
-        }
-    };
-
-    const markNotificationAsRead = async (notificationId) => {
-        try {
-            await api.put(`/notifications/${notificationId}/read`);
-            setNotifications(prev => prev.map(n => 
-                n.id === notificationId ? { ...n, is_read: true } : n
-            ));
-            setUnreadCount(prev => Math.max(0, prev - 1));
-        } catch (error) {
-            console.error('Failed to mark as read:', error);
         }
     };
 
@@ -103,11 +81,41 @@ const Dashboard = () => {
         },
         { 
             icon: '⚡', 
-            title: 'দ্রুত মানসিক স্বাস্থ্য পরীক্ষা', 
+            title: 'দ্রুত পরীক্ষা', 
             desc: '৪টি প্রশ্নে ঝুঁকি বিশ্লেষণ (71.55% নির্ভুল)',
             route: '/quick-assessment',
             color: 'linear-gradient(135deg, #10b981, #059669)',
+            badge: '🆓 FREE',
+            badgeColor: '#10b981',
             isNew: true
+        },
+        { 
+            icon: '💬', 
+            title: '২৪/৭ সাপোর্ট চ্যাট', 
+            desc: 'Groq AI দিয়ে যেকোনো সময় সাহায্য',
+            route: '/support',
+            color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+            badge: '🆓 FREE',
+            badgeColor: '#10b981',
+        },
+        { 
+            icon: '🤖', 
+            title: 'RAG চ্যাটবট', 
+            desc: 'ডকুমেন্ট-ভিত্তিক বিশেষজ্ঞ AI চ্যাট',
+            route: '/rag-chatbot',
+            color: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            badge: '👑 PAID',
+            badgeColor: '#f59e0b',
+            isNew: true
+        },
+        { 
+            icon: '📋', 
+            title: 'সম্পূর্ণ পরীক্ষা (১৭ প্রশ্ন)', 
+            desc: 'বিস্তারিত মানসিক স্বাস্থ্য বিশ্লেষণ',
+            route: '/quick-assessment',
+            color: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+            badge: '👑 PAID',
+            badgeColor: '#f59e0b',
         },
         { 
             icon: '📊', 
@@ -138,26 +146,22 @@ const Dashboard = () => {
             color: 'linear-gradient(135deg, #ef4444, #dc2626)'
         },
         { 
-            icon: '💬', 
-            title: '২৪/৭ সাপোর্ট', 
-            desc: 'যেকোনো সময় সাহায্য নিন',
-            route: '/support',
-            color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)'
-        },
-        { 
-            icon: '🔒', 
-            title: 'গোপনীয়তা', 
-            desc: 'আপনার তথ্য নিরাপদ',
-            route: '/privacy',
+            icon: '💰', 
+            title: 'মূল্য পরিকল্পনা', 
+            desc: 'Premium আপগ্রেড করুন',
+            route: '/pricing',
             color: 'linear-gradient(135deg, #6b7280, #4b5563)'
         },
         { 
-            icon: '📱', 
-            title: 'মোবাইল ফ্রেন্ডলি', 
-            desc: 'যেকোনো ডিভাইসে ব্যবহার করুন',
-            route: '/mobile',
-            color: 'linear-gradient(135deg, #14b8a6, #0d9488)'
-        }
+            icon: '🌿', 
+            title: 'ওয়েলনেস হাব', 
+            desc: 'মেজাজ ট্র্যাক, শ্বাসের ব্যায়াম, কৃতজ্ঞতা',
+            route: '/wellness',
+            color: 'linear-gradient(135deg, #10b981, #0d9488)',
+            badge: '✨ NEW',
+            badgeColor: '#10b981',
+            isNew: true
+        },
     ];
 
     if (loading) {
@@ -173,83 +177,9 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-container">
-            <header className="dashboard-header">
-                <div className="dashboard-header-content">
-                    <div className="logo">
-                        <div className="logo-icon">🧠</div>
-                        <div className="logo-text">
-                            <h2>মেন্টাল সাথী</h2>
-                            <p>আপনার মানসিক স্বাস্থ্যের সঙ্গী</p>
-                        </div>
-                    </div>
-                    
-                    <div className="user-menu">
-                        <div className="notification-dropdown">
-                            <button 
-                                className="notification-btn"
-                                onClick={() => setShowNotifications(!showNotifications)}
-                            >
-                                🔔
-                                {unreadCount > 0 && (
-                                    <span className="notification-badge">{unreadCount}</span>
-                                )}
-                            </button>
-                            
-                            {showNotifications && (
-                                <div className="notification-popup">
-                                    <div className="notification-popup-header">
-                                        <span>নোটিফিকেশন</span>
-                                        <button onClick={() => setShowNotifications(false)}>✕</button>
-                                    </div>
-                                    <div className="notification-popup-list">
-                                        {notifications.length === 0 ? (
-                                            <div className="no-notifications">কোনো নোটিফিকেশন নেই</div>
-                                        ) : (
-                                            notifications.map(notif => (
-                                                <div 
-                                                    key={notif.id}
-                                                    className={`notification-item ${!notif.is_read ? 'unread' : ''}`}
-                                                    onClick={() => {
-                                                        markNotificationAsRead(notif.id);
-                                                        if (notif.link) navigate(notif.link);
-                                                        setShowNotifications(false);
-                                                    }}
-                                                >
-                                                    <div className="notification-icon">{notif.icon || '🔔'}</div>
-                                                    <div className="notification-content">
-                                                        <div className="notification-title">{notif.title_bn || notif.title}</div>
-                                                        <div className="notification-message">{notif.message_bn || notif.message}</div>
-                                                        <div className="notification-time">{formatDate(notif.created_at)}</div>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                    <div className="notification-popup-footer">
-                                        <button onClick={() => navigate('/notifications')}>সব নোটিফিকেশন দেখুন →</button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        
-                        <div className="user-profile" onClick={() => navigate('/profile')}>
-                            <div className="user-info">
-                                <div className="user-name">{user?.name}</div>
-                                <div className="user-email">{user?.email}</div>
-                            </div>
-                            <div className="user-avatar">
-                                {user?.name?.charAt(0) || 'ই'}
-                            </div>
-                        </div>
-                        
-                        <button onClick={logout} className="logout-btn" title="লগআউট">
-                            🚪
-                        </button>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
-            <main className="dashboard-main">
+            <main className="dashboard-main" style={{ paddingTop: '100px' }}>
                 <div className="welcome-banner">
                     <div className="welcome-text">
                         <h3>{getGreeting()}!</h3>
@@ -323,13 +253,96 @@ const Dashboard = () => {
                             <div key={index} className="feature-item" onClick={() => navigate(feature.route)} style={{ cursor: 'pointer' }}>
                                 <div className="feature-icon" style={{ background: feature.color }}>{feature.icon}</div>
                                 <div className="feature-text">
-                                    <h4>{feature.title} {feature.isNew && <span className="new-badge">NEW</span>}</h4>
+                                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                        {feature.title}
+                                        {feature.isNew && <span className="new-badge">NEW</span>}
+                                        {feature.badge && (
+                                            <span style={{
+                                                fontSize: '0.6rem', padding: '1px 6px',
+                                                borderRadius: '10px', fontWeight: 700,
+                                                background: `${feature.badgeColor}20`,
+                                                border: `1px solid ${feature.badgeColor}40`,
+                                                color: feature.badgeColor,
+                                            }}>{feature.badge}</span>
+                                        )}
+                                    </h4>
                                     <p>{feature.desc}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
+
+                {/* 📚 Dynamic Content Section */}
+                {recentContent && recentContent.length > 0 && (
+                    <div className="features-section" style={{ marginTop: '2rem' }}>
+                        <div className="section-header">
+                            <h3 className="section-title">📚 নতুন আপডেট ও সহায়ক সামগ্রী</h3>
+                            <button onClick={() => navigate('/books')} className="view-all">সব দেখুন →</button>
+                        </div>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                            gap: '1.25rem',
+                            marginTop: '1rem'
+                        }}>
+                            {recentContent.map((item) => {
+                                const icons = { book: '📚', journal: '📝', article: '📰', quote: '💬', video: '🎬' };
+                                const label = { book: 'বই', journal: 'জার্নাল', article: 'আর্টিকেল', quote: 'উক্তি', video: 'ভিডিও' };
+                                return (
+                                    <div 
+                                        key={item.id} 
+                                        onClick={() => {
+                                            if (item.type === 'book') navigate('/books');
+                                            else if (item.type === 'article') navigate('/books');
+                                            else if (item.type === 'video') navigate('/books');
+                                            else navigate('/books');
+                                        }}
+                                        style={{
+                                            background: 'rgba(255, 255, 255, 0.02)',
+                                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                                            borderRadius: '16px',
+                                            padding: '1.25rem',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            gap: '0.75rem'
+                                        }}
+                                        className="dynamic-content-card"
+                                    >
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                                <span style={{ fontSize: '1.5rem' }}>{icons[item.type] || '📄'}</span>
+                                                <span style={{
+                                                    fontSize: '0.75rem',
+                                                    padding: '2px 8px',
+                                                    background: 'rgba(16, 185, 129, 0.1)',
+                                                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                                                    color: '#10b981',
+                                                    borderRadius: '12px',
+                                                    fontWeight: '600'
+                                                }}>{label[item.type] || item.type}</span>
+                                            </div>
+                                            <h4 style={{ color: '#eff8f3', fontSize: '1rem', fontWeight: '600', marginBottom: '0.4rem', lineHeight: '1.4' }}>
+                                                {item.title_bn || item.title}
+                                            </h4>
+                                            <p style={{ color: '#a8c0b5', fontSize: '0.8rem', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                                {item.content_bn || item.content}
+                                            </p>
+                                        </div>
+                                        {item.author && (
+                                            <div style={{ fontSize: '0.75rem', color: '#8b5cf6', fontWeight: '500', alignSelf: 'flex-end' }}>
+                                                👤 {item.author}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 <div className="chart-section">
                     <div className="chart-header">
@@ -630,6 +643,17 @@ const Dashboard = () => {
                         align-items: flex-start;
                         gap: 0.5rem;
                     }
+                }
+
+                /* CMS Dynamic Card hover style */
+                .dynamic-content-card {
+                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                }
+                .dynamic-content-card:hover {
+                    transform: translateY(-4px);
+                    background: rgba(16, 185, 129, 0.05) !important;
+                    border-color: rgba(16, 185, 129, 0.25) !important;
+                    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
                 }
             `}</style>
         </div>

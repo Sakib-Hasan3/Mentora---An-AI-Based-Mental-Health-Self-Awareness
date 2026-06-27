@@ -1,6 +1,6 @@
 import React from 'react';
 
-const WelcomeBanner = ({ userName }) => {
+const WelcomeBanner = ({ user }) => {
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return 'সুপ্রভাত';
@@ -9,19 +9,15 @@ const WelcomeBanner = ({ userName }) => {
     };
 
     return (
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 text-white mb-8">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h2 className="text-2xl font-bold mb-2">
-                        {getGreeting()}, {userName || 'বন্ধু'}! 👋
-                    </h2>
-                    <p className="text-purple-100">
-                        আপনার মানসিক স্বাস্থ্যের যাত্রা আজ কেমন যাচ্ছে?
-                    </p>
-                </div>
-                <div className="text-6xl animate-bounce">
-                    🧠
-                </div>
+        <div className="welcome-banner">
+            <div className="welcome-text">
+                <h3>{getGreeting()}!</h3>
+                <h1>{user?.name?.split(' ')[0]} 👋</h1>
+                <p>আজ আপনার দিন কেমন যাচ্ছে? আপনার মানসিক স্বাস্থ্যের যাত্রা এগিয়ে চলছে।</p>
+            </div>
+            <div className="welcome-emoji">
+                {/* Current score will be passed from Dashboard and calculated there */}
+                😊
             </div>
         </div>
     );

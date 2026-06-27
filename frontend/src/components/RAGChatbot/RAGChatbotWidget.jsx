@@ -1,8 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { api } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/rag-chatbot.css';
 
 const RAGChatbotWidget = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
@@ -11,6 +15,10 @@ const RAGChatbotWidget = () => {
     const [sessionId, setSessionId] = useState(null);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+
+    // Only show RAG chatbot widget to paid users
+    const isPaid = user?.user_type === 'paid' || user?.subscription === 'premium';
+    if (!isPaid) return null;
 
     const quickQuestions = [
         'ডিপ্রেশন কি?',

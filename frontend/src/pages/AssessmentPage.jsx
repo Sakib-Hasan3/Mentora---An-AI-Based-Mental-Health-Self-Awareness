@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import QuestionCard from '../components/Assessment/QuestionCard';
 import ResultCard from '../components/Assessment/ResultCard';
 import ProgressBar from '../components/Assessment/ProgressBar';
+import Header from '../components/Header';
 import '../styles/assessment.css';
 
 const AssessmentPage = () => {
@@ -127,7 +128,8 @@ const AssessmentPage = () => {
     const currentQuestionData = questions[currentQuestion];
 
     return (
-        <div className="assessment-container">
+        <div className="assessment-container" style={{ paddingTop: '70px' }}>
+            <Header />
             <div className="assessment-wrapper">
                 <div className="assessment-card">
                     <div className="assessment-header">

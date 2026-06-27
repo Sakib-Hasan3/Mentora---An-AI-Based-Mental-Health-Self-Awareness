@@ -1,65 +1,48 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    
-    const menuItems = [
-        { path: '/dashboard', name: 'ড্যাশবোর্ড', icon: '📊' },
-        { path: '/assessment', name: 'মানসিক স্বাস্থ্য পরীক্ষা', icon: '🧠' },
-        { path: '/profile', name: 'প্রোফাইল', icon: '👤' },
-        { path: '/reports', name: 'রিপোর্ট', icon: '📈' },
-        { path: '/resources', name: 'হেল্প ও রিসোর্স', icon: '💚' },
-        { path: '/settings', name: 'সেটিংস', icon: '⚙️' },
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+
+    const navItems = [
+        { name: 'ড্যাশবোর্ড', icon: '🏠', path: '/dashboard' },
+        { name: 'অ্যাসেসমেন্ট', icon: '🧠', path: '/assessment' },
+        { name: 'দ্রুত পরীক্ষা', icon: '⚡', path: '/quick-assessment' },
+        { name: 'অগ্রগতি', icon: '📊', path: '/progress' },
+        { name: 'বুক জার্নাল', icon: '📚', path: '/books' },
+        { name: 'কমিউনিটি', icon: '👥', path: '/community' },
+        { name: 'বিশেষজ্ঞ', icon: '🧑‍⚕️', path: '/consultants' },
+        { name: 'সাপোর্ট', icon: '💬', path: '/support' },
     ];
-    
+
     return (
-        <div className={`bg-gradient-to-b from-purple-800 to-purple-900 text-white h-screen transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'} fixed left-0 top-0 z-20`}>
-            {/* লোগো */}
-            <div className="flex items-center justify-between p-4 border-b border-purple-700">
-                {!isCollapsed && (
-                    <div className="flex items-center gap-2">
-                        <span className="text-2xl">🧠</span>
-                        <span className="font-bold">মেন্টাল সাথী</span>
-                    </div>
-                )}
-                {isCollapsed && <span className="text-2xl mx-auto">🧠</span>}
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="p-1 rounded-lg hover:bg-purple-700 transition"
-                >
-                    {isCollapsed ? '→' : '←'}
-                </button>
+        <aside className="sidebar">
+            <div className="sidebar-header" onClick={() => navigate('/dashboard')}>
+                <div className="sidebar-logo">M</div>
+                <h1>Mentora</h1>
             </div>
-            
-            {/* মেনু আইটেম */}
-            <nav className="mt-8">
-                {menuItems.map((item, index) => (
-                    <NavLink
-                        key={index}
-                        to={item.path}
-                        className={({ isActive }) => `
-                            flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-all duration-200
-                            ${isActive 
-                                ? 'bg-purple-700 text-white' 
-                                : 'text-purple-200 hover:bg-purple-700 hover:text-white'
-                            }
-                        `}
-                    >
-                        <span className="text-xl">{item.icon}</span>
-                        {!isCollapsed && <span>{item.name}</span>}
+            <nav className="sidebar-nav">
+                {navItems.map(item => (
+                    <NavLink key={item.name} to={item.path} className="sidebar-nav-item">
+                        <span className="sidebar-nav-icon">{item.icon}</span>
+                        <span className="sidebar-nav-text">{item.name}</span>
                     </NavLink>
                 ))}
             </nav>
-            
-            {/* নিচের অংশ */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-purple-700">
-                <button className="flex items-center gap-3 text-purple-200 hover:text-white transition w-full">
-                    <span className="text-xl">🚪</span>
-                    {!isCollapsed && <span>লগআউট</span>}
+            <div className="sidebar-footer">
+                <div className="sidebar-footer-card">
+                    <h3>Need Help?</h3>
+                    <p>Check our support section for assistance.</p>
+                    <button onClick={() => navigate('/support')}>Get Help</button>
+                </div>
+                <button onClick={logout} className="sidebar-logout">
+                    <span className="sidebar-nav-icon">🚪</span>
+                    <span className="sidebar-nav-text">Logout</span>
                 </button>
             </div>
-        </div>
+        </aside>
     );
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 import '../styles/books.css';
 
 const BooksPage = () => {
@@ -108,7 +109,8 @@ const BooksPage = () => {
     }
 
     return (
-        <div className="books-container">
+        <div className="books-container" style={{ paddingTop: '70px' }}>
+            <Header />
             <div className="books-header">
                 <button onClick={() => navigate('/dashboard')} className="back-btn">
                     ← ড্যাশবোর্ড

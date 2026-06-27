@@ -1,6 +1,6 @@
 from core.database import db
 from notifications.models.notifications import NotificationModel
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 
 NOTIFICATIONS_COLLECTION = "notifications"
@@ -114,6 +114,20 @@ class NotificationService:
         )
     
     @staticmethod
+    async def notify_appointment_reminder(user_id: str, consultant_name: str, date: str, time: str):
+        return await NotificationService.create_notification(
+            user_id=user_id,
+            title="Today's Appointment Reminder",
+            title_bn="আজকের অ্যাপয়েন্টমেন্ট রিমাইন্ডার",
+            message=f"Reminder: You have an appointment with {consultant_name} today at {time}.",
+            message_bn=f"স্মরণ করিয়ে দিচ্ছি: আজ {time} সময়ে {consultant_name} এর সাথে আপনার অ্যাপয়েন্টমেন্ট রয়েছে।",
+            notif_type="warning",
+            icon="🏥",
+            link="/consultants"
+        )
+
+    
+    @staticmethod
     async def notify_book_reminder(user_id: str, book_title: str):
         return await NotificationService.create_notification(
             user_id=user_id,
@@ -129,6 +143,7 @@ class NotificationService:
     @staticmethod
     async def send_bulk_notification(user_ids: list, title: str, message: str, notif_type: str = "info", icon: str = "🔔"):
         notifications = []
+        now = datetime.now(timezone.utc)
         for user_id in user_ids:
             notifications.append(NotificationModel.create({
                 "user_id": user_id,
@@ -139,8 +154,8 @@ class NotificationService:
                 "type": notif_type,
                 "icon": icon,
                 "is_read": False,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "created_at": now,
+                "updated_at": now
             }))
         
         if notifications:

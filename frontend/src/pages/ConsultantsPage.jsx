@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ConsultantCard from '../components/Consultant/ConsultantCard';
 import BookingModal from '../components/Consultant/BookingModal';
 import FilterBar from '../components/Consultant/FilterBar';
+import Header from '../components/Header';
 import '../styles/consultant.css';
 
 const ConsultantsPage = () => {
@@ -82,7 +83,8 @@ const ConsultantsPage = () => {
     if (loading) return <div className="loading-spinner"><div className="books-spinner"></div></div>;
 
     return (
-        <div className="consultant-container">
+        <div className="consultant-container" style={{ paddingTop: '70px' }}>
+            <Header />
             <div className="consultant-header">
                 <button onClick={() => navigate('/dashboard')} className="back-btn">← ড্যাশবোর্ড</button>
                 <h1>🧑‍⚕️ মেন্টাল কনসালট্যান্ট</h1>

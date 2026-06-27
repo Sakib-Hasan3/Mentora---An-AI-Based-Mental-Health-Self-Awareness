@@ -13,6 +13,15 @@ import CommunityPage from './pages/CommunityPage';
 import ConsultantsPage from './pages/ConsultantsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import QuickAssessment from './pages/QuickAssessment';
+import RAGChatbotPage from './pages/RAGChatbotPage';
+import PricingPage from './pages/PricingPage';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminLogin from './pages/AdminLogin';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFail from './pages/PaymentFail';
+import PaymentCancel from './pages/PaymentCancel';
+import WellnessHub from './pages/WellnessHub';
 import FloatingWidget from './components/AssessmentWidget/FloatingWidget';
 import RAGChatbotWidget from './components/RAGChatbot/RAGChatbotWidget';
 import './styles/globals.css';
@@ -71,12 +80,25 @@ function AppRoutes() {
             <Route path="/consultants" element={user ? <ConsultantsPage /> : <Navigate to="/login" />} />
             <Route path="/notifications" element={user ? <NotificationsPage /> : <Navigate to="/login" />} />
             <Route path="/quick-assessment" element={user ? <QuickAssessment /> : <Navigate to="/login" />} />
+            <Route path="/rag-chatbot" element={user ? <RAGChatbotPage /> : <Navigate to="/login" />} />
+            <Route path="/pricing" element={user ? <PricingPage /> : <Navigate to="/login" />} />
+            <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+            <Route path="/wellness" element={user ? <WellnessHub /> : <Navigate to="/login" />} />
             
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={user && (user.is_admin || user.user_type === 'admin') ? <AdminDashboard /> : <Navigate to="/admin/login" />} />
+
+            {/* Payment Callbacks */}
+            <Route path="/payment/success" element={user ? <PaymentSuccess /> : <Navigate to="/login" />} />
+            <Route path="/payment/fail" element={user ? <PaymentFail /> : <Navigate to="/login" />} />
+            <Route path="/payment/cancel" element={user ? <PaymentCancel /> : <Navigate to="/login" />} />
+
             <Route path="/assessment/history" element={user ? <ComingSoon title="অ্যাসেসমেন্ট ইতিহাস" /> : <Navigate to="/login" />} />
-            <Route path="/profile" element={user ? <ComingSoon title="প্রোফাইল" /> : <Navigate to="/login" />} />
             <Route path="/privacy" element={user ? <ComingSoon title="গোপনীয়তা" /> : <Navigate to="/login" />} />
             <Route path="/mobile" element={user ? <ComingSoon title="মোবাইল অ্যাপ" /> : <Navigate to="/login" />} />
             <Route path="/activities" element={user ? <ComingSoon title="সব কার্যকলাপ" /> : <Navigate to="/login" />} />
+            <Route path="/stress-management" element={user ? <ComingSoon title="স্ট্রেস ম্যানেজমেন্ট" /> : <Navigate to="/login" />} />
             <Route path="/stress-management" element={user ? <ComingSoon title="স্ট্রেস ম্যানেজমেন্ট" /> : <Navigate to="/login" />} />
             <Route path="/meditation" element={user ? <ComingSoon title="মেডিটেশন" /> : <Navigate to="/login" />} />
         </Routes>
