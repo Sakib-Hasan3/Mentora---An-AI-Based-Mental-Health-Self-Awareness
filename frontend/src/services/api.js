@@ -1,82 +1,133 @@
+/**
+ * frontend/src/services/api.js
+ * Centralized API client for Mentora.
+ *
+ * - Base URL from REACT_APP_API_URL env var (falls back to same-host:8000)
+ * - Automatic Authorization header injection
+ * - 401 handling: clears auth and redirects to /login
+ * - Consistent error format
+ * - No console.log in production
+ */
+
 import { readStoredAuth } from '../context/AuthContext';
+import { getApiBaseUrl } from '../utils/apiUrl';
 
-const getApiUrl = () => {
-    if (typeof window !== 'undefined') {
-        const hostname = window.location.hostname;
-        return `http://${hostname}:8000/api`;
-    }
-    return 'http://localhost:8000/api';
-};
-const API_URL = getApiUrl();
+// ─── Config ───────────────────────────────────────────────────────────────
+const isDev = process.env.NODE_ENV === 'development';
 
+// ─── Storage Keys ─────────────────────────────────────────────────────────
+const AUTH_STORAGE_KEY  = 'mentora_auth';
+const LEGACY_TOKEN_KEY  = 'token';
+const LEGACY_USER_KEY   = 'user';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
 const getToken = () => {
-    const auth = readStoredAuth();
-    const token = auth ? auth.token : null;
-    console.log('Token from storage:', token ? token.substring(0, 50) + '...' : 'No token');
-    return token;
+  const auth = readStoredAuth();
+  return auth?.token ?? null;
 };
 
-const handleResponse = async (response) => {
-    if (response.status === 401) {
-        console.log('401 Unauthorized - clearing token');
-        // Use the clear function from auth context to be safe
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-        localStorage.removeItem(LEGACY_TOKEN_KEY);
-        localStorage.removeItem(LEGACY_USER_KEY);
-        sessionStorage.removeItem(AUTH_STORAGE_KEY);
-        sessionStorage.removeItem(LEGACY_TOKEN_KEY);
-        sessionStorage.removeItem(LEGACY_USER_KEY);
-        window.location.href = '/login';
-        throw new Error('Session expired. Please login again.');
-    }
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-        throw new Error(data.detail || data.message || 'Request failed');
-    }
-    
-    return data;
+const clearAuth = () => {
+  [localStorage, sessionStorage].forEach(store => {
+    store.removeItem(AUTH_STORAGE_KEY);
+    store.removeItem(LEGACY_TOKEN_KEY);
+    store.removeItem(LEGACY_USER_KEY);
+  });
 };
 
+const log = isDev ? console.log.bind(console, '[API]') : () => {};
+
+// ─── Response Handler ─────────────────────────────────────────────────────
+const handleResponse = async (response, endpoint) => {
+  if (response.status === 401) {
+    log('401 on', endpoint, '— clearing session');
+    clearAuth();
+    window.location.href = '/login';
+    throw new Error('Session expired. Please login again.');
+  }
+
+  // Parse body (try JSON, fallback to text)
+  let data;
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    data = await response.json();
+  } else {
+    data = await response.text();
+  }
+
+  if (!response.ok) {
+    const message =
+      (typeof data === 'object' && (data.detail || data.message || data.error)) ||
+      `HTTP ${response.status}`;
+    const err = new Error(message);
+    err.status = response.status;
+    err.data = data;
+    throw err;
+  }
+
+  return data;
+};
+
+// ─── Core Request ─────────────────────────────────────────────────────────
 const request = async (endpoint, options = {}) => {
-    const token = getToken();
-    
-    const headers = {
-        'Content-Type': 'application/json',
-        ...options.headers,
-    };
-    
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        console.log(`Request to ${endpoint} with auth header`);
-    } else {
-        console.log(`Request to ${endpoint} WITHOUT auth header`);
-    }
-    
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
-    
-    return handleResponse(response);
+  const token = getToken();
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  log(options.method || 'GET', endpoint, token ? '🔑' : '🔓');
+
+  const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  return handleResponse(response, endpoint);
 };
 
+// ─── Public API ───────────────────────────────────────────────────────────
 export const api = {
-    get: (endpoint) => request(endpoint, { method: 'GET' }),
-    post: (endpoint, data) => request(endpoint, { 
-        method: 'POST', 
-        body: JSON.stringify(data) 
+  get: (endpoint, options = {}) =>
+    request(endpoint, { method: 'GET', ...options }),
+
+  post: (endpoint, data, options = {}) =>
+    request(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      ...options,
     }),
-    put: (endpoint, data) => request(endpoint, { 
-        method: 'PUT', 
-        body: JSON.stringify(data) 
+
+  put: (endpoint, data, options = {}) =>
+    request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      ...options,
     }),
-    delete: (endpoint) => request(endpoint, { method: 'DELETE' }),
+
+  patch: (endpoint, data, options = {}) =>
+    request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      ...options,
+    }),
+
+  delete: (endpoint, options = {}) =>
+    request(endpoint, { method: 'DELETE', ...options }),
+
+  /** For multipart/form-data (file uploads) — no Content-Type header */
+  upload: (endpoint, formData, options = {}) =>
+    request(endpoint, {
+      method: 'POST',
+      body: formData,
+      headers: {},   // Let browser set multipart boundary
+      ...options,
+    }),
 };
 
-// For handleResponse, we need the keys. It's better to import them if they are exported,
-// but for now, we'll redefine them to avoid breaking changes if they are not.
-const AUTH_STORAGE_KEY = 'mentora_auth';
-const LEGACY_TOKEN_KEY = 'token';
-const LEGACY_USER_KEY = 'user';
+export default api;
