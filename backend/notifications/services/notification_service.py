@@ -1,6 +1,6 @@
 from core.database import db
 from notifications.models.notifications import NotificationModel
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 
 NOTIFICATIONS_COLLECTION = "notifications"
@@ -143,6 +143,7 @@ class NotificationService:
     @staticmethod
     async def send_bulk_notification(user_ids: list, title: str, message: str, notif_type: str = "info", icon: str = "🔔"):
         notifications = []
+        now = datetime.now(timezone.utc)
         for user_id in user_ids:
             notifications.append(NotificationModel.create({
                 "user_id": user_id,
@@ -153,8 +154,8 @@ class NotificationService:
                 "type": notif_type,
                 "icon": icon,
                 "is_read": False,
-                "created_at": datetime.utcnow(),
-                "updated_at": datetime.utcnow()
+                "created_at": now,
+                "updated_at": now
             }))
         
         if notifications:
