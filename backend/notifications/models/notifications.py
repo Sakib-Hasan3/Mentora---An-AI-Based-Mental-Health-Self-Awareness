@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional
 
 class NotificationModel:
     @staticmethod
     def create(data: Dict) -> Dict:
+        now = datetime.now(timezone.utc)
         return {
             "user_id": data.get("user_id"),
             "title": data.get("title"),
@@ -15,8 +16,8 @@ class NotificationModel:
             "link": data.get("link"),
             "metadata": data.get("metadata", {}),
             "is_read": False,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": now,
+            "updated_at": now
         }
     
     @staticmethod
